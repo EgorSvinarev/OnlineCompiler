@@ -19,7 +19,7 @@ public class ExecutionProcessHandler {
 	Logger logger = LoggerFactory.getLogger(CompileController.class);
 	
 	public ExecutionResult execute(String path) throws Exception {
-		String command = "python " + path;
+		String command = "python3 " + path;
 		
 		Process process = startProcess(command);
 		
