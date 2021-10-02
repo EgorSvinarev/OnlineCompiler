@@ -2,10 +2,20 @@ package com.svinarev.compiler.utils;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.svinarev.compiler.controllers.CompileController;
+
 import java.io.*;
 
+import org.springframework.stereotype.Component;
 
+@Component
 public class FileHandler {
+	
+	Logger logger = LoggerFactory.getLogger(CompileController.class);
 	
 	public static String getStringID() {
 		
@@ -18,7 +28,7 @@ public class FileHandler {
 		
 	}
 	
-	public static void write(String data, String path) throws IOException {
+	public void write(String data, String path) throws IOException {
 		File file = new File(path);
 		File parentFile = file.getParentFile();
 		
@@ -33,6 +43,11 @@ public class FileHandler {
             bfr.write(data);
             bfr.newLine();
             bfr.close();
+            
+            logger.debug("File {} was successfully written.", path);
+        }
+        else {
+        	logger.debug("File {} already exists.");
         }
 	}
 	

@@ -26,6 +26,7 @@ public class CompileController {
 	
 	@PostMapping(value = "/compile")
 	public ResponseEntity<?> compile(@Valid @RequestBody RawCodeDTO code) {
+		logger.debug("A request to an endpoint /compile was received.");
 		return ResponseEntity.ok(
 				ExecutionResultConverter.toDTO(
 						service.compile(RawCodeConverter.fromDto(code))

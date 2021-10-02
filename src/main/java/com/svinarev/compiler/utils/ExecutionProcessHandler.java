@@ -5,17 +5,32 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.SequenceInputStream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.svinarev.compiler.controllers.CompileController;
 import com.svinarev.compiler.models.ExecutionResult;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class ExecutionProcessHandler {
 	
-	public static ExecutionResult execute(String path) throws Exception {
+	Logger logger = LoggerFactory.getLogger(CompileController.class);
+	
+	public ExecutionResult execute(String path) throws Exception {
 		String command = "python " + path;
+		
 		Process process = startProcess(command);
+		
+		logger.debug("Execution process with a pid {} was successfully started.", process.pid());
 		
 		String output = readStream(process.getInputStream());
 		String error = readStream(process.getErrorStream());
 		String status = (error.length() == 0) ? "success" : "error";
+		
+		process.destroy();
+		logger.debug("Execution process with a pid {} was successfully destroyed.", process.pid());
 		
 		return ExecutionResult.builder()
 					.status(status)
