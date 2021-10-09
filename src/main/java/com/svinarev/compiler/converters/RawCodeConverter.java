@@ -7,7 +7,7 @@ public class RawCodeConverter {
 
 	public static RawCode fromDto(RawCodeDTO rawCode) {
 		return RawCode.builder()
-					.code(rawCode.getCode())
+					.code("import limits\n" + rawCode.getCode())
 			   .build();
 	}
 	
