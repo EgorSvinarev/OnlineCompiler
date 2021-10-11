@@ -23,7 +23,9 @@ ENV PATH $PATH:$CATALINA_HOME/bin
 EXPOSE 8080  
  
 ARG JAR_FILE=target/online-compiler-0.0.1-SNAPSHOT.jar
+ARG COMPILE_DIST_FOLDER=programs
 
 COPY ${JAR_FILE} app.jar
+ADD ${COMPILE_DIST_FOLDER} programs
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
