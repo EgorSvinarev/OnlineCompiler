@@ -32,6 +32,6 @@ def set_max_memorylimit(maxsize):
 	resource.setrlimit(resource.RLIMIT_AS, (maxsize, hard))  
 
 
-set_max_runtime(2)
+set_max_runtime(1)
 set_max_memorylimit(2 ** 17)
 sys.excepthook = my_except_hook
