@@ -13,7 +13,7 @@ public class RawCodeConverter {
 	
 	public static RawCodeDTO toDTO(RawCode rawCode) {
 		return RawCodeDTO.builder()
-					.code(rawCode.getCode())
+					.code(rawCode.getCode().substring(14))
 			   .build();
 	}
 	
