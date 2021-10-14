@@ -51,10 +51,34 @@ public class FileHandler {
         }
 	}
 	
-	public static void deleteFile(String path) {
+	public void delete(String path) {
 		File file = new File(path);
 		
 		file.delete();
+		logger.debug("File {} was successfully deleted.", path);
 	}
+	
+	public String read(String path) {
+		File file = new File(path);
+		
+		String result = "";
+		
+		try {
+			FileReader fr = new FileReader(file);
+		
+			BufferedReader bfr = new BufferedReader(fr);
+			
+			String line = bfr.readLine();
+			while (line != null) {
+				result += line + "\n";
+				line = bfr.readLine();
+			}
+		}
+		catch (IOException e) {
+			logger.debug("The exception was handled while reading the file: {}", e.getMessage() + ": " + e.fillInStackTrace().getMessage().toString());
+		}
+		
+		return result;
+	}	
 	
 }
