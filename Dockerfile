@@ -25,9 +25,11 @@ EXPOSE 8080
 ARG JAR_FILE=target/online-compiler-0.0.1-SNAPSHOT.jar
 ARG COMPILE_DIST_FOLDER=programs
 ARG CONFIG_FOLDER=config
+ARG WHITELIST_FOLDER=whitelist
 
 COPY ${JAR_FILE} app.jar
 ADD ${COMPILE_DIST_FOLDER} programs
 ADD ${CONFIG_FOLDER} config
+ADD ${WHITELIST_FOLDER} whitelist
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
