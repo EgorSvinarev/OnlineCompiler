@@ -51,7 +51,7 @@ public class CompileController {
 		logger.debug("A request to an endpoint /compile was received.");
 		return ResponseEntity.ok(
 				ExecutionResultConverter.toDTO(
-						service.compile(RawCodeConverter.fromDto(code))
+						service.compile(RawCodeConverter.fromDTO(code))
 				)
 		);
 	}

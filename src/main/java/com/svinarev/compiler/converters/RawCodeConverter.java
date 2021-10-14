@@ -5,13 +5,13 @@ import com.svinarev.compiler.dto.RawCodeDTO;
 
 public class RawCodeConverter {
 
-	public static RawCode fromDto(RawCodeDTO rawCode) {
+	public static RawCode fromDTO(RawCodeDTO rawCode) {
 		return RawCode.builder()
 					.code("import limits\n" + rawCode.getCode())
 			   .build();
 	}
 	
-	public static RawCodeDTO toDto(RawCode rawCode) {
+	public static RawCodeDTO toDTO(RawCode rawCode) {
 		return RawCodeDTO.builder()
 					.code(rawCode.getCode())
 			   .build();
