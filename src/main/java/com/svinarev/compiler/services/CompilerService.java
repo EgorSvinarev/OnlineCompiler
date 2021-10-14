@@ -56,7 +56,7 @@ public class CompilerService {
 
 		}
 		
-		FileHandler.deleteFile(path);
+		fileHandler.delete(path);
 		
 		logger.debug("Execution result for the file {}: {}.", path, result.toString());
 		
