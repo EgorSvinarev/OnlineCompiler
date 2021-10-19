@@ -3,6 +3,8 @@ package com.svinarev.compiler.utils;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import io.sentry.Sentry;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,6 +78,7 @@ public class FileHandler {
 		}
 		catch (IOException e) {
 			logger.debug("The exception was handled while reading the file: {}", e.getMessage() + ": " + e.fillInStackTrace().getMessage().toString());
+			Sentry.captureException(e);
 		}
 		
 		return result;

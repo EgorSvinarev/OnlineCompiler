@@ -34,6 +34,7 @@ public class WhitelistProcessingFilter extends AbstractPreAuthenticatedProcessin
 	
 	@Override
 	protected Object getPreAuthenticatedPrincipal(HttpServletRequest request) {
+		
 		for (String ip: allowedIP) {
 			if (new IpAddressMatcher(ip).matches(request)) {
 				logger.debug("Remote IP is in the allowed list: {}", request.getRemoteAddr(), allowedIP);
@@ -43,7 +44,8 @@ public class WhitelistProcessingFilter extends AbstractPreAuthenticatedProcessin
 		
 		logger.debug("Remote IP {} isn't in the allowed list: {}", request.getRemoteAddr(), allowedIP);
 		
-		return null;
+//		return null;
+		return request.getRemoteAddr();
 	}
 	
 	@Override

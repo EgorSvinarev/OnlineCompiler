@@ -32,6 +32,7 @@ public class ExecutionProcessHandler {
 		process.destroy();
 		logger.debug("Execution process with a pid {} was successfully destroyed.", process.pid());
 		
+		
 		return ExecutionResult.builder()
 					.status(status)
 					.output(output)

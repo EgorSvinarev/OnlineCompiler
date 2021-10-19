@@ -3,6 +3,8 @@ package com.svinarev.compiler.services;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import io.sentry.Sentry;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -48,6 +50,8 @@ public class CompilerService {
 			logger.debug(e.toString() + e.fillInStackTrace().getMessage().toString());
 			String error = e.getMessage() + ": " + e.fillInStackTrace().getMessage().toString();
 			
+			Sentry.captureException(e);
+			
 			result = ExecutionResult.builder()
 						.output("")
 						.status("error")
@@ -59,6 +63,10 @@ public class CompilerService {
 		fileHandler.delete(path);
 		
 		logger.debug("Execution result for the file {}: {}.", path, result.toString());
+		
+		if (result.isLimited()) {
+			Sentry.captureMessage(result.toString());
+		}
 		
 		return result;
 		
