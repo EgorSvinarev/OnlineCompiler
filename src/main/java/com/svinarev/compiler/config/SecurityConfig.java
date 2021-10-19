@@ -10,6 +10,8 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
 import org.springframework.security.core.userdetails.UserDetailsByNameServiceWrapper;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -19,7 +21,7 @@ import com.svinarev.compiler.filters.WhitelistProcessingFilter;
 
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+public class SecurityConfig extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
 	
 	@Value("${whitelist.file}")
 	private String whitelistFile;
@@ -50,4 +52,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	    
 	}
 	
+	@Override
+	public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOrigins("*")
+                .allowedMethods("*");
+    }
 }
