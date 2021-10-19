@@ -22,11 +22,15 @@ public class ExceptionHandlingController {
 		return ResponseEntity.status(500).body(message);
 	}
 	
+	
+	
 	@ExceptionHandler(HttpRequestMethodNotSupportedException.class)
 	public ResponseEntity<String> handleInvalidHttpMessageException(HttpRequestMethodNotSupportedException e) {
 		String message = "Invalid http message: " + e.getMethod();
 		
-		return ResponseEntity.status(500).body(message);
+		return ResponseEntity.status(405).body(message);
 	}
+	
+	@
 	
 }
