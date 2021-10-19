@@ -6,14 +6,14 @@ import sys
 # Exception hook that handles MemoryError
 def my_except_hook(exctype, value, traceback):
 	if exctype == MemoryError:
-		raise SystemExit("The memory limit was exceeded.")    
+		raise SystemExit("Limitation of execution: the memory limit was exceeded.")    
 	else:
 		sys.__excepthook__(exctype, value, traceback)
 
 
 # Time limit's callback
 def time_exceeded(signo, frame):
-	raise SystemExit("The execution time was exceeded.")
+	raise SystemExit("Limitation of execution: the execution time was exceeded.")
 
 
 def set_max_runtime(seconds):
