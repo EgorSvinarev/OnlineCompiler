@@ -16,6 +16,9 @@ RUN apt-get -y install curl
 RUN apt-get update
 RUN apt-get -y install vim
 
+#Install iptables
+RUN  apt-get -y install iptables
+
 # Install Tomcat9 
 RUN cd /tmp && curl -L 'http://archive.apache.org/dist/tomcat/tomcat-9/v9.0.53/bin/apache-tomcat-9.0.53.tar.gz' | tar -xz  
 RUN mv /tmp/apache-tomcat-9.0.53/ /opt/tomcat9/   
