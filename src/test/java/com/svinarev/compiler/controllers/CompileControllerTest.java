@@ -80,7 +80,7 @@ public class CompileControllerTest extends BaseControllerTest {
 		
 		assertEquals(execResult.getStatus(), "error");
 		assertEquals(execResult.getOutput(), "");
-		assertEquals(execResult.getError(), "The execution time was exceeded.");
+		assertEquals(execResult.getError(), "Limitation of execution: the execution time was exceeded.");
 	}
 	
 	@Test
@@ -100,7 +100,7 @@ public class CompileControllerTest extends BaseControllerTest {
 		
 		assertEquals(execResult.getStatus(), "error");
 		assertEquals(execResult.getOutput(), "");
-		assertEquals(execResult.getError(), "The memory limit was exceeded.");
+		assertEquals(execResult.getError(), "Limitation of execution: the memory limit was exceeded.");
 	}
 	
 }
