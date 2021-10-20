@@ -30,7 +30,4 @@ public class ExceptionHandlingController {
 		
 		return ResponseEntity.status(405).body(message);
 	}
-	
-	@
-	
 }
