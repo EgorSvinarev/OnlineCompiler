@@ -36,7 +36,7 @@ public class ExecutionProcessHandler {
 		return ExecutionResult.builder()
 					.status(status)
 					.output(output)
-					.error(error)
+					.error(ExecutionResult.parseError(error))
 			   .build();
 	}
 	
