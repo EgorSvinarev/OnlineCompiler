@@ -19,4 +19,14 @@ public class ExecutionResult {
 		return error.contains("Limitation of execution");
 	}
 	
+	public static String parseError(String stacktrace) {
+		int begin = stacktrace.lastIndexOf(":");
+		
+		if (!(stacktrace.contains("Error") || stacktrace.contains("Exception") || stacktrace.contains("TestFail"))) return stacktrace;
+		
+		if (begin == -1) return stacktrace;
+		
+		return stacktrace.substring(begin + 2);
+	}
+	
 }
