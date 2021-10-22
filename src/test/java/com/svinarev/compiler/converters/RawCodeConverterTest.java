@@ -17,7 +17,7 @@ public class RawCodeConverterTest extends BaseConverterTest {
 		RawCodeDTO rawCodeDto = getRawCodeDto();
 		RawCode rawCode = RawCodeConverter.fromDTO(rawCodeDto);
 		
-		assertEquals("import limits\n" + rawCodeDto.getCode(), rawCode.getCode());
+		assertEquals(rawCodeDto.getCode(), rawCode.getCode());
 	}
 	
 	@Test
@@ -25,7 +25,7 @@ public class RawCodeConverterTest extends BaseConverterTest {
 		RawCode rawCode = getRawCode();
 		RawCodeDTO rawCodeDto = RawCodeConverter.toDTO(rawCode);
 		
-		assertEquals("import limits\n" + rawCodeDto.getCode(), rawCode.getCode());
+		assertEquals(rawCodeDto.getCode(), rawCode.getCode());
 	}
 	
 }
