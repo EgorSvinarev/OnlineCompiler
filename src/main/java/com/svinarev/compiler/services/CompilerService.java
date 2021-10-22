@@ -8,18 +8,24 @@ import io.sentry.Sentry;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.Optional;
 
 import com.svinarev.compiler.models.RawCode;
 import com.svinarev.compiler.controllers.CompileController;
 import com.svinarev.compiler.models.ExecutionResult;
+import com.svinarev.compiler.entities.Exercise;
+import com.svinarev.compiler.repositories.ExerciseRepository;
 
 import com.svinarev.compiler.utils.ExecutionProcessHandler;
 import com.svinarev.compiler.utils.FileHandler;
+import com.svinarev.compiler.utils.CodeFormatter;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.beans.factory.annotation.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.time.LocalDateTime;
 
 @Service
 @PropertySource(value = "classpath:application.properties")
@@ -34,6 +40,12 @@ public class CompilerService {
 	@Autowired
 	private FileHandler fileHandler;
 	
+	@Autowired
+	private ExerciseRepository exerciseRepository;
+	
+	@Autowired 
+	private CodeFormatter codeFormatter;
+	
 	Logger logger = LoggerFactory.getLogger(CompileController.class);
 	
 	public ExecutionResult compile(RawCode code) {
@@ -42,8 +54,10 @@ public class CompilerService {
 		
 		ExecutionResult result;
 		
+		RawCode limitedCode = codeFormatter.addLimits(code);
+		
 		try{
-			fileHandler.write(code.getCode(), path);
+			fileHandler.write(limitedCode.getCode(), path);
 			result = execHandler.execute(path);	
 		}
 		catch (Exception e) {
@@ -55,7 +69,7 @@ public class CompilerService {
 			result = ExecutionResult.builder()
 						.output("")
 						.status("error")
-						.error(error)
+						.error(ExecutionResult.parseError(error))
 				   .build();
 
 		}
@@ -69,7 +83,25 @@ public class CompilerService {
 		}
 		
 		return result;
+	}
+	
+	public ExecutionResult checkExercise(RawCode code, Long exerciseId) {
+		Optional<Exercise> opt = exerciseRepository.findById(exerciseId);
 		
+		if (opt.isEmpty()) {
+			logger.debug("Exercise with id: {} wasn't found", exerciseId);
+			return ExecutionResult.builder()
+						.status("error")
+						.error(String.format("Exercise with id: %s wasn't found", exerciseId))
+						.output("")
+				   .build();	
+		}
+		
+		Exercise exercise = opt.get();
+		
+		RawCode sctCode = codeFormatter.prepareSCT(code, exercise);
+		
+		return compile(sctCode);
 		
 	}
 	
