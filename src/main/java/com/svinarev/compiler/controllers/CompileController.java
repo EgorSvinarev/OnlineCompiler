@@ -3,6 +3,7 @@ package com.svinarev.compiler.controllers;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -34,6 +35,8 @@ public class CompileController {
 	@Autowired
 	CompilerService service;
 	
+	
+	
 	@Operation(summary = "Исполнение кода",
 			   description = "Компиляция кода и возвращение результата его исполнения.")
 	@ApiResponse(responseCode = "200", description = "Успешное выполнение операции.",
@@ -42,16 +45,44 @@ public class CompileController {
 	@ApiResponse(responseCode = "500", description = "Ошибка исполнения.")
 	
 	@PostMapping(value = "/compile", produces = {"application/json"})
+	
 	public ResponseEntity<?> compile(
 			@Parameter(description = "Пользовательский код для исполнения.", 
             	required = true, 
             	schema = @Schema(implementation = RawCodeDTO.class))
 			
 			@Valid @RequestBody RawCodeDTO code) {
+		
 		logger.debug("A request to an endpoint /compile was received.");
+		
 		return ResponseEntity.ok(
 				ExecutionResultConverter.toDTO(
 						service.compile(RawCodeConverter.fromDTO(code))
+				)
+		);
+	}
+	
+	
+	@Operation(summary = "Проверка упражнения",
+			   description = "Проверка правильность выполнения упраженения с возвращением развернутого сообщения об ошибке студента.")
+	@ApiResponse(responseCode = "200", description = "Успешное выполнение операции.",
+				 content = @Content(schema = @Schema(implementation = ExecutionResultDTO.class))
+				)
+	@ApiResponse(responseCode = "500", description = "Ошибка исполнения.")
+	
+	@PostMapping(value = "/checkExercise/{exerciseId}", produces = {"application/json"})
+	public ResponseEntity<?> checkExercise(
+			@Parameter(description = "Код, решающий упражнение",
+					   required = true,
+					   schema  = @Schema(implementation = RawCodeDTO.class))
+			@Valid @RequestBody RawCodeDTO code,
+			@PathVariable Long exerciseId) {
+		
+		logger.debug("A request to an endpoint /checkExercise was received.");
+		
+		return ResponseEntity.ok(
+				ExecutionResultConverter.toDTO(
+						service.checkExercise(RawCodeConverter.fromDTO(code), exerciseId)
 				)
 		);
 	}
