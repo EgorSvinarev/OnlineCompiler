@@ -48,16 +48,18 @@ public class CompilerService {
 	
 	Logger logger = LoggerFactory.getLogger(CompileController.class);
 	
-	public ExecutionResult compile(RawCode code) {
+	public ExecutionResult compile(RawCode code, boolean isLimitsRequired) {
 		String path = DEST_DIR + File.separator + FileHandler.getStringID() + ".py";
 		logger.debug("The path to the compiled file {}.", path);
 		
 		ExecutionResult result;
 		
-		RawCode limitedCode = codeFormatter.addLimits(code);
+		if (isLimitsRequired) {
+			code = codeFormatter.addLimits(code);	
+		}
 		
 		try{
-			fileHandler.write(limitedCode.getCode(), path);
+			fileHandler.write(code.getCode(), path);
 			result = execHandler.execute(path);	
 		}
 		catch (Exception e) {
@@ -101,7 +103,7 @@ public class CompilerService {
 		
 		RawCode sctCode = codeFormatter.prepareSCT(code, exercise);
 		
-		return compile(sctCode);
+		return compile(sctCode, false);
 		
 	}
 	
