@@ -57,7 +57,7 @@ public class CompileController {
 		
 		return ResponseEntity.ok(
 				ExecutionResultConverter.toDTO(
-						service.compile(RawCodeConverter.fromDTO(code))
+						service.compile(RawCodeConverter.fromDTO(code), true)
 				)
 		);
 	}
