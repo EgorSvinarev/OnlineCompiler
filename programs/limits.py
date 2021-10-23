@@ -33,5 +33,5 @@ def set_max_memorylimit(maxsize):
 
 
 set_max_runtime(2)
-set_max_memorylimit(2 ** 29)
+set_max_memorylimit(2 ** 30)
 sys.excepthook = my_except_hook
