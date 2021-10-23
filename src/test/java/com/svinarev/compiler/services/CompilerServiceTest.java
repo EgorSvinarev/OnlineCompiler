@@ -40,7 +40,7 @@ public class CompilerServiceTest {
 						  .build();
 		
 		
-		ExecutionResult execResult = service.compile(rawCode);
+		ExecutionResult execResult = service.compile(rawCode, true);
 		
 		assertEquals(execResultRef.getStatus(), execResult.getStatus());
 		assertEquals(execResultRef.getOutput(), execResult.getOutput());

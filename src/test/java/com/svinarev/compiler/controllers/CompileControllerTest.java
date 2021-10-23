@@ -83,24 +83,24 @@ public class CompileControllerTest extends BaseControllerTest {
 		assertEquals(execResult.getError(), "Limitation of execution: the execution time was exceeded.");
 	}
 	
-	@Test
-	public void memorylimitCompilation() throws Exception {
-		RawCodeDTO rawCode = getTestMemoryLimitedRawCode();
-		
-		MvcResult result = mvc.perform(MockMvcRequestBuilders.post(
-								URI
-				   ).contentType(MediaType.APPLICATION_JSON_VALUE)
-					.content(super.mapToJson(rawCode))).andReturn();
-		
-		int responseStatus = result.getResponse().getStatus();
-		assertEquals(responseStatus, 200);
-		
-		String content = result.getResponse().getContentAsString();
-		ExecutionResultDTO execResult = super.mapFromJson(content, ExecutionResultDTO.class);
-		
-		assertEquals(execResult.getStatus(), "error");
-		assertEquals(execResult.getOutput(), "");
-		assertEquals(execResult.getError(), "Limitation of execution: the memory limit was exceeded.");
-	}
+//	@Test
+//	public void memorylimitCompilation() throws Exception {
+//		RawCodeDTO rawCode = getTestMemoryLimitedRawCode();
+//		
+//		MvcResult result = mvc.perform(MockMvcRequestBuilders.post(
+//								URI
+//				   ).contentType(MediaType.APPLICATION_JSON_VALUE)
+//					.content(super.mapToJson(rawCode))).andReturn();
+//		
+//		int responseStatus = result.getResponse().getStatus();
+//		assertEquals(responseStatus, 200);
+//		
+//		String content = result.getResponse().getContentAsString();
+//		ExecutionResultDTO execResult = super.mapFromJson(content, ExecutionResultDTO.class);
+//		
+//		assertEquals(execResult.getStatus(), "error");
+//		assertEquals(execResult.getOutput(), "");
+//		assertEquals(execResult.getError(), "Limitation of execution: the memory limit was exceeded.");
+//	}
 	
 }
