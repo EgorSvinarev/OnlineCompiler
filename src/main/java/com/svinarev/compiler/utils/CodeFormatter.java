@@ -23,6 +23,7 @@ public class CodeFormatter {
 					+ "globals().update(ctxt)\n"
 					+ "\n"
 					+ "from pythonwhat.test_exercise import setup_state\n"
+					+ "import limits\n"
 					+ String.format("setup_state(stu_code = \"\"\"%s\"\"\", sol_code = \"\"\"%s\"\"\")\n", code.getCode(), exercise.getSolution())
 					+ String.format("%s", exercise.getSct());
 		
