@@ -38,17 +38,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements WebM
 		PreAuthenticatedAuthenticationProvider preAuthProvider = new PreAuthenticatedAuthenticationProvider();
         preAuthProvider.setPreAuthenticatedUserDetailsService(new UserDetailsByNameServiceWrapper<>(whitelistFilter));
         http.authenticationProvider(preAuthProvider);
-	
+//	
         http
-        	.antMatcher("/compile")
     		.addFilterAt(whitelistFilter, AbstractPreAuthenticatedProcessingFilter.class);
-        
+//        	
 		http.csrf().disable()
 	    	.sessionManagement().sessionCreationPolicy(STATELESS)
 	    .and()
 	    	.authorizeRequests()
 	    		.antMatchers("/swagger-ui/**").permitAll()
-	    		.antMatchers("/compile").authenticated();
+	    		.anyRequest().authenticated();
+//	    		.antMatchers("/compile").authenticated()
+//				.antMatchers("/checkExercise/**").authenticated();
 	    
 	}
 	
