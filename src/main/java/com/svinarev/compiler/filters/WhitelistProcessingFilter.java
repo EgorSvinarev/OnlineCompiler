@@ -44,8 +44,7 @@ public class WhitelistProcessingFilter extends AbstractPreAuthenticatedProcessin
 		
 		logger.debug("Remote IP {} isn't in the allowed list: {}", request.getRemoteAddr(), allowedIP);
 		
-//		return null;
-		return request.getRemoteAddr();
+		return null;
 	}
 	
 	@Override
