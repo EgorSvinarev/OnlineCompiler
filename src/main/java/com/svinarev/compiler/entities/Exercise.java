@@ -46,7 +46,7 @@ public class Exercise {
 	@Column(name = "video_id")
 	private String videoId;
 	
-	@Column(name = "pre_exercize_code")
+	@Column(name = "pre_exersize_code")
 	private String preExerciseCode;
 	
 	@Column(name = "sample_code")
@@ -54,9 +54,6 @@ public class Exercise {
 	
 	@Column(name = "solution")
 	private String solution;
-	
-	@Column(name = "sct")
-	private String sct;
 	
 	@Column(name = "instruction")
 	private String instruction;
