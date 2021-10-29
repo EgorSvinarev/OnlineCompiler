@@ -23,6 +23,12 @@ RUN  apt-get -y install iptables
 RUN cd /tmp && curl -L 'http://archive.apache.org/dist/tomcat/tomcat-9/v9.0.53/bin/apache-tomcat-9.0.53.tar.gz' | tar -xz  
 RUN mv /tmp/apache-tomcat-9.0.53/ /opt/tomcat9/   
 
+# Install pip3
+RUN apt-get update && apt-get install -y python3-pip
+
+# Install packages
+RUN pip3 install numpy pandas pythonwhat
+
 ENV CATALINA_HOME /opt/tomcat9  
 ENV PATH $PATH:$CATALINA_HOME/bin  
  
