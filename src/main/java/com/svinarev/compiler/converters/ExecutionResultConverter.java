@@ -11,6 +11,7 @@ public class ExecutionResultConverter {
 			.status(execResDto.getStatus())
 			.output(execResDto.getOutput())
 			.error(execResDto.getError())
+			.bytePayload(execResDto.getBytePayload())
 		.build();
 	}
 	
@@ -19,6 +20,7 @@ public class ExecutionResultConverter {
 			.status(execRes.getStatus())
 			.output(execRes.getOutput())
 			.error(execRes.getError())
+			.bytePayload(execRes.getBytePayload())
 		.build();
 	}
 	
