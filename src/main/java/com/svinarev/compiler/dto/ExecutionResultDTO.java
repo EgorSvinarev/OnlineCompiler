@@ -20,5 +20,6 @@ public class ExecutionResultDTO {
 	private String output;
 	@Schema(description = "Данные из STDERR", example = "The memory limit was exceeded.")
 	private String error;
-	
+	@Schema(description = "Полезная нагрузка в формате base64, полученная в результате компиляции.")
+	private String bytePayload;
 }
