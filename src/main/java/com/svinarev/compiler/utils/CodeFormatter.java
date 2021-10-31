@@ -2,6 +2,9 @@ package com.svinarev.compiler.utils;
 
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+import java.util.HashMap;
+
 import com.svinarev.compiler.models.RawCode;
 import com.svinarev.compiler.entities.Exercise;
 
@@ -30,6 +33,29 @@ public class CodeFormatter {
 		return RawCode.builder()
 					.code(sct)
 			   .build();
+	}
+	
+	public Map<String, Object> preparePlotGraph(RawCode code, Exercise exercise, String filePath) {
+		Map<String, Object> result = new HashMap<>();
+		
+		String userCode = code.getCode();
+		String solution = exercise.getSolution();
+		String expectation = exercise.getExpectation();
+		
+		String functionCallCode = String.format("plt.savefig('%s')", filePath);
+		
+		userCode = userCode.replace("plt.show()", functionCallCode);
+		solution = solution.replace("plt.show()", functionCallCode);
+		expectation = expectation.replace("matplotlib.pyplot.show", "matplotlib.pyplot.savefig");
+		
+		code.setCode(userCode);
+		exercise.setSolution(solution);
+		exercise.setExpectation(expectation);
+		
+		result.put("code", code);
+		result.put("exercise", exercise);
+		
+		return result;
 		
 	}
 	
