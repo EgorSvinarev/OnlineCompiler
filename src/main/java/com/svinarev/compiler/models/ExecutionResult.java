@@ -14,7 +14,8 @@ public class ExecutionResult {
 	private String status;
 	private String output;
 	private String error;
-
+	private String bytePayload;
+	
 	public boolean isLimited() {
 		return error.contains("Limitation of execution");
 	}
