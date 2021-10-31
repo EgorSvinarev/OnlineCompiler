@@ -26,9 +26,6 @@ RUN mv /tmp/apache-tomcat-9.0.53/ /opt/tomcat9/
 # Install pip3
 RUN apt-get update && apt-get install -y python3-pip
 
-# Install packages
-RUN pip3 install numpy pandas pythonwhat
-
 ENV CATALINA_HOME /opt/tomcat9  
 ENV PATH $PATH:$CATALINA_HOME/bin  
  
@@ -39,10 +36,17 @@ ARG JAR_FILE=target/online-compiler-0.0.1-SNAPSHOT.jar
 ARG COMPILE_DIST_FOLDER=programs
 ARG CONFIG_FOLDER=config
 ARG WHITELIST_FOLDER=whitelist
+ARG PYTHON_RQRMNT_FILE=requirments.txt
+ARG IMAGES_FOLDER=images
 
 COPY ${JAR_FILE} app.jar
 ADD ${COMPILE_DIST_FOLDER} programs
 ADD ${CONFIG_FOLDER} config
 ADD ${WHITELIST_FOLDER} whitelist
+ADD ${IMAGES_FOLDER} images
+COPY ${PYTHON_RQRMNT_FILE} requirments.txt
+
+# Install packages
+RUN pip3 install -r requirments.txt
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
