@@ -6,9 +6,14 @@ import org.springframework.stereotype.Service;
 import io.sentry.Sentry;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.file.Files;
 import java.util.Optional;
+import java.util.Map;
+import java.util.Base64;
+import java.time.LocalDateTime;
 
 import com.svinarev.compiler.models.RawCode;
 import com.svinarev.compiler.controllers.CompileController;
@@ -33,6 +38,9 @@ public class CompilerService {
 
 	@Value(value = "${programs.dest_dir}")
 	private String DEST_DIR;
+	
+	@Value(value = "${images.dest_dir}")
+	private String IMG_DEST_DIR;
 	
 	@Autowired
 	private ExecutionProcessHandler execHandler;
@@ -105,6 +113,60 @@ public class CompilerService {
 		
 		return compile(sctCode, false);
 		
+	}
+	
+	public ExecutionResult plotGraph(RawCode code, Long exerciseId) {
+		
+		Optional<Exercise> opt = exerciseRepository.findById(exerciseId);
+		
+		if (opt.isEmpty()) {
+			logger.debug("Exercise with id: {} wasn't found", exerciseId);
+			return ExecutionResult.builder()
+						.status("error")
+						.error(String.format("Exercise with id: %s wasn't found", exerciseId))
+						.output("")
+				   .build();	
+		}
+		
+		Exercise exercise = opt.get();
+		
+		String imgPath = IMG_DEST_DIR + File.separator + FileHandler.getStringID() + ".png";
+		logger.debug("The path to the image file {}.", imgPath);
+		
+		
+		Map<String, Object> pair = codeFormatter.preparePlotGraph(code, exercise, imgPath);
+		code = (RawCode) pair.get("code");
+		exercise = (Exercise) pair.get("exercise");
+		
+		RawCode sctCode = codeFormatter.prepareSCT(code, exercise);
+		ExecutionResult execResult = compile(sctCode, false);
+		
+		if (execResult.getStatus().equals("success")) {
+		
+			try {
+				File f = new File(imgPath);
+				FileInputStream fis = new FileInputStream(f);
+				
+				byte[] byteArray = new byte[(int) f.length()];
+				fis.read(byteArray);
+				
+				String base64Image = Base64.getEncoder().encodeToString(byteArray);
+				
+				execResult.setBytePayload(String.format("data:image/png;base64,%s"	, base64Image));
+				
+				logger.debug("A graph was plotted. ");
+			
+				f.delete();
+				fis.close();
+			
+			}
+			catch (IOException exc) {
+			
+				logger.debug(exc.toString() + exc.fillInStackTrace().getMessage().toString());
+			}
+		}
+		
+		return execResult;
 	}
 	
 }
