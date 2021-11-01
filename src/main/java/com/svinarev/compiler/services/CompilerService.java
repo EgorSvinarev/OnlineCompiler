@@ -19,7 +19,9 @@ import com.svinarev.compiler.models.RawCode;
 import com.svinarev.compiler.controllers.CompileController;
 import com.svinarev.compiler.models.ExecutionResult;
 import com.svinarev.compiler.entities.Exercise;
+import com.svinarev.compiler.entities.ExerciseUserPair;
 import com.svinarev.compiler.repositories.ExerciseRepository;
+import com.svinarev.compiler.repositories.ExerciseUserPairRepository;
 
 import com.svinarev.compiler.utils.ExecutionProcessHandler;
 import com.svinarev.compiler.utils.FileHandler;
@@ -51,12 +53,16 @@ public class CompilerService {
 	@Autowired
 	private ExerciseRepository exerciseRepository;
 	
+	@Autowired
+	private ExerciseUserPairRepository exerciseUserPairRepository;
+	
 	@Autowired 
 	private CodeFormatter codeFormatter;
 	
 	Logger logger = LoggerFactory.getLogger(CompileController.class);
 	
 	public ExecutionResult compile(RawCode code, boolean isLimitsRequired) {
+//		Generating a file path
 		String path = DEST_DIR + File.separator + FileHandler.getStringID() + ".py";
 		logger.debug("The path to the compiled file {}.", path);
 		
@@ -67,6 +73,7 @@ public class CompilerService {
 		}
 		
 		try{
+//			Writing a user code to the file for compilation
 			fileHandler.write(code.getCode(), path);
 			result = execHandler.execute(path);	
 		}
@@ -95,7 +102,8 @@ public class CompilerService {
 		return result;
 	}
 	
-	public ExecutionResult checkExercise(RawCode code, Long exerciseId) {
+	public ExecutionResult checkExercise(RawCode code, Long exerciseId, Long userId) {
+//		Getting exercise by id
 		Optional<Exercise> opt = exerciseRepository.findById(exerciseId);
 		
 		if (opt.isEmpty()) {
@@ -111,12 +119,28 @@ public class CompilerService {
 		
 		RawCode sctCode = codeFormatter.prepareSCT(code, exercise);
 		
-		return compile(sctCode, false);
+		ExecutionResult result = compile(sctCode, false);
+		
+		if (result.getStatus().equals("success")) {
+//			Entering a data into the database that the exercise was completed
+			ExerciseUserPair exUsPair = ExerciseUserPair.builder()
+					    					.userId(userId)
+					    					.exerciseId(exerciseId)
+					    					.createdAt(LocalDateTime.now())
+					    					.updatedAt(LocalDateTime.now())
+										.build();
+			
+			if (!exerciseUserPairRepository.existsByUserIdAndExerciseId(userId, exerciseId)) {
+				exerciseUserPairRepository.save(exUsPair);
+			}			
+		}
+		
+		return result;
 		
 	}
 	
-	public ExecutionResult plotGraph(RawCode code, Long exerciseId) {
-		
+	public ExecutionResult plotGraph(RawCode code, Long exerciseId, Long userId) {
+//		Getting exercise by id
 		Optional<Exercise> opt = exerciseRepository.findById(exerciseId);
 		
 		if (opt.isEmpty()) {
@@ -130,10 +154,11 @@ public class CompilerService {
 		
 		Exercise exercise = opt.get();
 		
+//		Generating an image path		
 		String imgPath = IMG_DEST_DIR + File.separator + FileHandler.getStringID() + ".png";
 		logger.debug("The path to the image file {}.", imgPath);
 		
-		
+//		Preparation of user code for the plotting a graph
 		Map<String, Object> pair = codeFormatter.preparePlotGraph(code, exercise, imgPath);
 		code = (RawCode) pair.get("code");
 		exercise = (Exercise) pair.get("exercise");
@@ -144,12 +169,14 @@ public class CompilerService {
 		if (execResult.getStatus().equals("success")) {
 		
 			try {
+//				Getting a byte array that represents an image
 				File f = new File(imgPath);
 				FileInputStream fis = new FileInputStream(f);
 				
 				byte[] byteArray = new byte[(int) f.length()];
 				fis.read(byteArray);
 				
+//				Convert a byte array to the Base64
 				String base64Image = Base64.getEncoder().encodeToString(byteArray);
 				
 				execResult.setBytePayload(String.format("data:image/png;base64,%s"	, base64Image));
@@ -164,7 +191,23 @@ public class CompilerService {
 			
 				logger.debug(exc.toString() + exc.fillInStackTrace().getMessage().toString());
 			}
+			
+//			Entering a data into the database that the exercise was completed
+			ExerciseUserPair exUsPair = ExerciseUserPair.builder()
+					    					.userId(userId)
+					    					.exerciseId(exerciseId)
+					    					.createdAt(LocalDateTime.now())
+					    					.updatedAt(LocalDateTime.now())
+										.build();
+			
+			if (!exerciseUserPairRepository.existsByUserIdAndExerciseId(userId, exerciseId)) {
+				exerciseUserPairRepository.save(exUsPair);
+			}
+			
 		}
+		
+		
+		
 		
 		return execResult;
 	}
