@@ -22,6 +22,7 @@ import com.svinarev.compiler.entities.Exercise;
 import com.svinarev.compiler.entities.ExerciseUserPair;
 import com.svinarev.compiler.repositories.ExerciseRepository;
 import com.svinarev.compiler.repositories.ExerciseUserPairRepository;
+import com.svinarev.compiler.repositories.UserRepository;
 
 import com.svinarev.compiler.utils.ExecutionProcessHandler;
 import com.svinarev.compiler.utils.FileHandler;
@@ -55,6 +56,9 @@ public class CompilerService {
 	
 	@Autowired
 	private ExerciseUserPairRepository exerciseUserPairRepository;
+	
+	@Autowired
+	private UserRepository userRepository;
 	
 	@Autowired 
 	private CodeFormatter codeFormatter;
@@ -115,6 +119,15 @@ public class CompilerService {
 				   .build();	
 		}
 		
+		if (!userRepository.existsById(userId)) {
+			logger.debug("User with id: {} wasn't found", userId);
+			return ExecutionResult.builder()
+						.status("error")
+						.error(String.format("User with id: %s wasn't found", userId))
+						.output("")
+				   .build();
+		}
+		
 		Exercise exercise = opt.get();
 		
 		RawCode sctCode = codeFormatter.prepareSCT(code, exercise);
@@ -150,6 +163,15 @@ public class CompilerService {
 						.error(String.format("Exercise with id: %s wasn't found", exerciseId))
 						.output("")
 				   .build();	
+		}
+		
+		if (!userRepository.existsById(userId)) {
+			logger.debug("User with id: {} wasn't found", userId);
+			return ExecutionResult.builder()
+						.status("error")
+						.error(String.format("User with id: %s wasn't found", userId))
+						.output("")
+				   .build();
 		}
 		
 		Exercise exercise = opt.get();
