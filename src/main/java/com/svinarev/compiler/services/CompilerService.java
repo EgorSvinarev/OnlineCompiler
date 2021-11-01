@@ -119,6 +119,7 @@ public class CompilerService {
 				   .build();	
 		}
 		
+//		Validate userId parameter
 		if (!userRepository.existsById(userId)) {
 			logger.debug("User with id: {} wasn't found", userId);
 			return ExecutionResult.builder()
@@ -129,6 +130,19 @@ public class CompilerService {
 		}
 		
 		Exercise exercise = opt.get();
+		
+//		Validate exercise fields
+		if (exercise.getSolution() == null || 
+			exercise.getExpectation() == null || 
+			exercise.getPreExerciseCode() == null) {
+			
+			logger.debug("Exercise with id: {} is invalid.", exerciseId);
+			return ExecutionResult.builder()
+						.status("error")
+						.error(String.format("Exercise with id: %s is invalid.", exerciseId))
+						.output("")
+				   .build();
+		}
 		
 		RawCode sctCode = codeFormatter.prepareSCT(code, exercise);
 		
@@ -175,6 +189,19 @@ public class CompilerService {
 		}
 		
 		Exercise exercise = opt.get();
+
+//		Validate exercise fields
+		if (exercise.getSolution() == null || 
+			exercise.getExpectation() == null || 
+			exercise.getPreExerciseCode() == null) {
+				
+				logger.debug("Exercise with id: {} is invalid.", exerciseId);
+				return ExecutionResult.builder()
+							.status("error")
+							.error(String.format("Exercise with id: %s is invalid.", exerciseId))
+							.output("")
+					   .build();
+			}
 		
 //		Generating an image path		
 		String imgPath = IMG_DEST_DIR + File.separator + FileHandler.getStringID() + ".png";
