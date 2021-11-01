@@ -83,6 +83,11 @@ public class CompileController {
 			@RequestParam(name = "isGraphRequired", required = false, defaultValue = "false")
 			boolean isGraphRequired,
 			
+			@Parameter(description = "Id пользователя, который решает упражнение",
+					   required = true)
+			@RequestParam(name = "userId", required = true)
+			Long userId,
+			
 			@PathVariable Long exerciseId) {
 		
 		logger.debug("A request to an endpoint /checkExercise was received.");
@@ -90,14 +95,14 @@ public class CompileController {
 		if (isGraphRequired) {
 			return ResponseEntity.ok(
 					ExecutionResultConverter.toDTO(
-							service.plotGraph(RawCodeConverter.fromDTO(code), exerciseId)
+							service.plotGraph(RawCodeConverter.fromDTO(code), exerciseId, userId)
 					)
 			);
 		}
 		else {
 			return ResponseEntity.ok(
 					ExecutionResultConverter.toDTO(
-							service.checkExercise(RawCodeConverter.fromDTO(code), exerciseId)
+							service.checkExercise(RawCodeConverter.fromDTO(code), exerciseId, userId)
 					)
 			);
 		}
