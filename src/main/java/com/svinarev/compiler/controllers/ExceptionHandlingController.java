@@ -4,6 +4,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 
@@ -27,6 +28,13 @@ public class ExceptionHandlingController {
 	@ExceptionHandler(HttpRequestMethodNotSupportedException.class)
 	public ResponseEntity<String> handleInvalidHttpMessageException(HttpRequestMethodNotSupportedException e) {
 		String message = "Invalid http message: " + e.getMethod();
+		
+		return ResponseEntity.status(405).body(message);
+	}
+	
+	@ExceptionHandler(MissingServletRequestParameterException.class)
+	public ResponseEntity<String> handleMissingServletRequestParameterException(MissingServletRequestParameterException e) {
+		String message = "The required parameter is missing: " + e.getParameterName();
 		
 		return ResponseEntity.status(405).body(message);
 	}
