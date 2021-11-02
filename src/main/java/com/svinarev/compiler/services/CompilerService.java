@@ -133,8 +133,7 @@ public class CompilerService {
 		
 //		Validate exercise fields
 		if (exercise.getSolution() == null || 
-			exercise.getExpectation() == null || 
-			exercise.getPreExerciseCode() == null) {
+			exercise.getExpectation() == null) {
 			
 			logger.debug("Exercise with id: {} is invalid.", exerciseId);
 			return ExecutionResult.builder()
@@ -166,6 +165,32 @@ public class CompilerService {
 		
 	}
 	
+	private void createExercise() {
+		Exercise e = Exercise.builder()
+						.id(6L)
+						.preExerciseCode("import matplotlib.pyplot as plt\n")
+						.solution("# Create data array\n"
+								+ "arr = [i for i in range(1, 10)]\n"
+								+ "\n"
+								+ "# Import the matplotlib.pyplot package as plt\n"
+								+ "import matplotlib.pyplot as plt\n"
+								+ "\n"
+								+ "# Plot a graph based on a data array\n"
+								+ "plt.plot(arr)\n"
+								+ "\n"
+								+ "# Show a graph\n"
+								+ "plt.show()")
+						.expectation("Ex().check_object(\"arr\")\n"
+								+ "Ex().has_import(\"matplotlib.pyplot\", same_as = True)\n"
+								+ "Ex().check_function(\"matplotlib.pyplot.plot\", missing_msg = \"Did you specify the first argument?\").check_args([\"args\", 0])\n"
+								+ "Ex().check_function(\"matplotlib.pyplot.savefig\", missing_msg = \"Did you call plt.show()\")")
+						.courseId(1L)
+						.updatedAt(LocalDateTime.now())
+						.createdAt(LocalDateTime.now())
+						.build();
+		exerciseRepository.save(e);
+	}
+	
 	public ExecutionResult plotGraph(RawCode code, Long exerciseId, Long userId) {
 //		Getting exercise by id
 		Optional<Exercise> opt = exerciseRepository.findById(exerciseId);
@@ -192,8 +217,7 @@ public class CompilerService {
 
 //		Validate exercise fields
 		if (exercise.getSolution() == null || 
-			exercise.getExpectation() == null || 
-			exercise.getPreExerciseCode() == null) {
+			exercise.getExpectation() == null) {
 				
 				logger.debug("Exercise with id: {} is invalid.", exerciseId);
 				return ExecutionResult.builder()
