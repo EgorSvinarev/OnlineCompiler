@@ -20,7 +20,7 @@ public class CodeFormatter {
 	}
 	
 	public RawCode prepareSCT(RawCode code, Exercise exercise) {
-		String sct = String.format("%s\n", exercise.getPreExerciseCode())
+		String sct = String.format("%s\n", exercise.getPreExerciseCode() != null ? exercise.getPreExerciseCode(): "")
 					+ "from pythonwhat.test_exercise import prep_context\n"
 					+ "_, ctxt = prep_context()\n"
 					+ "globals().update(ctxt)\n"
