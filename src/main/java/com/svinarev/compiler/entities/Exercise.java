@@ -47,7 +47,7 @@ public class Exercise {
 	private String videoId;
 	
 	@Column(name = "pre_exercise_code")
-	private String preExerciseCode;
+	private String preExerciseCode = "";
 	
 	@Column(name = "sample_code")
 	private String sampleCode;
