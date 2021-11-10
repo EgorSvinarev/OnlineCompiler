@@ -38,6 +38,7 @@ public class CompileController {
 	
 	
 	
+//	BEGIN OF THE DOCUMENTATION
 	@Operation(summary = "Исполнение кода",
 			   description = "Компиляция кода и возвращение результата его исполнения.")
 	@ApiResponse(responseCode = "200", description = "Успешное выполнение операции.",
@@ -45,31 +46,34 @@ public class CompileController {
 				)
 	@ApiResponse(responseCode = "500", description = "Ошибка исполнения.")
 	
-	@PostMapping(value = "/compile", produces = {"application/json"})
+	@PostMapping(value = "/execute", produces = {"application/json"})
+//	END OF THE DOCUMENTATION
 	
-	public ResponseEntity<?> compile(
+	public ResponseEntity<?> execute(
 			@Parameter(description = "Пользовательский код для исполнения.", 
             	required = true, 
             	schema = @Schema(implementation = RawCodeDTO.class))
 			
 			@Valid @RequestBody RawCodeDTO code) {
 		
-		logger.debug("A request to an endpoint /compile was received.");
+		logger.debug("A request to an endpoint /execute was received.");
 		
 		return ResponseEntity.ok(
 				ExecutionResultConverter.toDTO(
-						service.compile(RawCodeConverter.fromDTO(code), true)
+						service.execute(RawCodeConverter.fromDTO(code))
 				)
 		);
 	}
 	
 	
+//	BEGIN OF THE DOCUMENTATION	
 	@Operation(summary = "Проверка упражнения",
 			   description = "Проверка правильность выполнения упраженения с возвращением развернутого сообщения об ошибке студента.")
 	@ApiResponse(responseCode = "200", description = "Успешное выполнение операции.",
 				 content = @Content(schema = @Schema(implementation = ExecutionResultDTO.class))
 				)
 	@ApiResponse(responseCode = "500", description = "Ошибка исполнения.")
+//	END OF THE DOCUMENTATION
 	
 	@PostMapping(value = "/checkExercise/{exerciseId}", produces = {"application/json"})
 	public ResponseEntity<?> checkExercise(
