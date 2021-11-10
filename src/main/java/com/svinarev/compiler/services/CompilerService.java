@@ -65,16 +65,12 @@ public class CompilerService {
 	
 	Logger logger = LoggerFactory.getLogger(CompileController.class);
 	
-	public ExecutionResult compile(RawCode code, boolean isLimitsRequired) {
+	public ExecutionResult compile(RawCode code) {
 //		Generating a file path
 		String path = DEST_DIR + File.separator + FileHandler.getStringID() + ".py";
 		logger.debug("The path to the compiled file {}.", path);
 		
 		ExecutionResult result;
-		
-		if (isLimitsRequired) {
-			code = codeFormatter.addLimits(code);	
-		}
 		
 		try{
 //			Writing a user code to the file for compilation
@@ -90,7 +86,7 @@ public class CompilerService {
 			result = ExecutionResult.builder()
 						.output("")
 						.status("error")
-						.error(ExecutionResult.parseError(error))
+						.error(error)
 				   .build();
 
 		}
@@ -104,6 +100,18 @@ public class CompilerService {
 		}
 		
 		return result;
+	}
+	
+	public ExecutionResult execute(RawCode code) {
+		
+//		Addition of the limits for the execution
+		code = codeFormatter.addLimits(code);
+		
+//		Сode compilation and execution
+		ExecutionResult result = compile(code);
+		
+		return result;
+		
 	}
 	
 	public ExecutionResult checkExercise(RawCode code, Long exerciseId, Long userId) {
@@ -145,7 +153,8 @@ public class CompilerService {
 		
 		RawCode sctCode = codeFormatter.prepareSCT(code, exercise);
 		
-		ExecutionResult result = compile(sctCode, false);
+		ExecutionResult result = compile(sctCode);
+		result.setError(ExecutionResult.parseError(result.getError()));
 		
 		if (result.getStatus().equals("success")) {
 //			Entering a data into the database that the exercise was completed
@@ -237,7 +246,8 @@ public class CompilerService {
 		exercise = (Exercise) pair.get("exercise");
 		
 		RawCode sctCode = codeFormatter.prepareSCT(code, exercise);
-		ExecutionResult execResult = compile(sctCode, false);
+		ExecutionResult execResult = compile(sctCode);
+		execResult.setError(ExecutionResult.parseError(execResult.getError()));
 		
 		if (execResult.getStatus().equals("success")) {
 		
