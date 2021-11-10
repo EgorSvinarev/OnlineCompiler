@@ -15,7 +15,7 @@ import com.svinarev.compiler.dto.ExecutionResultDTO;
 
 public class CompileControllerTest extends BaseControllerTest {
 	
-	private static final String URI = "/compile";
+	private static final String URI = "/execute";
 	
 	@Override
 	@BeforeEach
