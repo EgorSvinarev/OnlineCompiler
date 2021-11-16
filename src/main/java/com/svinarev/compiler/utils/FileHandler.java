@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import com.svinarev.compiler.controllers.CompileController;
 
 import java.io.*;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import org.springframework.stereotype.Component;
 
@@ -39,7 +40,7 @@ public class FileHandler {
 		}
         if (!file.exists()) {
             file.createNewFile();
-            FileWriter fw = new FileWriter(path);
+            FileWriter fw = new FileWriter(file, UTF_8);
             BufferedWriter bfr = new BufferedWriter(fw);
 
             bfr.write(data);
@@ -66,7 +67,7 @@ public class FileHandler {
 		String result = "";
 		
 		try {
-			FileReader fr = new FileReader(file);
+			FileReader fr = new FileReader(file, UTF_8);
 		
 			BufferedReader bfr = new BufferedReader(fr);
 			
