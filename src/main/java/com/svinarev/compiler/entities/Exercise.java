@@ -32,10 +32,10 @@ public class Exercise {
 	private Long id;
 	
 	@Column(name = "exercise_type")
-	private int exerciseType;
+	private Integer exerciseType;
 	
 	@Column(name = "xp")
-	private int xp;
+	private Integer xp;
 	
 	@Column(name = "description")
 	private String description;
@@ -71,5 +71,5 @@ public class Exercise {
 	private LocalDateTime updatedAt;
 	
 	@Column(name = "position")
-	private int position;
+	private Integer position;
 }
