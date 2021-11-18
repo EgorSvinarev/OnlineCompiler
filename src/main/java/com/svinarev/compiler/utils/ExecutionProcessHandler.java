@@ -47,7 +47,7 @@ public class ExecutionProcessHandler {
 	}
 	
 	private static String readStream(InputStream stream) throws Exception {
-		InputStreamReader inputStreamReader = new InputStreamReader(stream, "GBK");
+		InputStreamReader inputStreamReader = new InputStreamReader(stream, "utf-8");
 		
 		BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
 		
