@@ -114,6 +114,32 @@ public class CompilerService {
 		
 	}
 	
+	public ExecutionResult executeWithExercise(RawCode code, Long exerciseId) {
+
+//		Getting exercise by id
+		Optional<Exercise> opt = exerciseRepository.findById(exerciseId);
+		
+		if (opt.isEmpty()) {
+			logger.debug("Exercise with id: {} wasn't found", exerciseId);
+			return ExecutionResult.builder()
+						.status("error")
+						.error(String.format("Exercise with id: %s wasn't found", exerciseId))
+						.output("")
+				   .build();	
+		}
+
+		Exercise exercise = opt.get();
+		
+		RawCode exerciseCode;
+		exerciseCode = codeFormatter.addLimits(code);
+		exerciseCode = codeFormatter.addPreExerciseCode(exerciseCode, exercise);
+		
+		ExecutionResult result = compile(exerciseCode);
+		
+		return result;
+		
+	}
+	
 	public ExecutionResult checkExercise(RawCode code, Long exerciseId, Long userId) {
 //		Getting exercise by id
 		Optional<Exercise> opt = exerciseRepository.findById(exerciseId);
@@ -151,9 +177,13 @@ public class CompilerService {
 				   .build();
 		}
 		
-		RawCode sctCode = codeFormatter.prepareSCT(code, exercise);
+		RawCode exerciseCode;
+		exerciseCode = codeFormatter.addLimits(code);
+		exerciseCode = codeFormatter.addPreExerciseCode(exerciseCode, exercise);
+		exerciseCode = codeFormatter.addSCT(exerciseCode, exercise);
 		
-		ExecutionResult result = compile(sctCode);
+		
+		ExecutionResult result = compile(exerciseCode);
 		result.setError(ExecutionResult.parseError(result.getError()));
 		
 		if (result.getStatus().equals("success")) {
@@ -245,8 +275,12 @@ public class CompilerService {
 		code = (RawCode) pair.get("code");
 		exercise = (Exercise) pair.get("exercise");
 		
-		RawCode sctCode = codeFormatter.prepareSCT(code, exercise);
-		ExecutionResult execResult = compile(sctCode);
+		RawCode exerciseCode;
+		exerciseCode = codeFormatter.addLimits(code);
+		exerciseCode = codeFormatter.addPreExerciseCode(exerciseCode, exercise);
+		exerciseCode = codeFormatter.addSCT(exerciseCode, exercise);
+		
+		ExecutionResult execResult = compile(exerciseCode);
 		execResult.setError(ExecutionResult.parseError(execResult.getError()));
 		
 		if (execResult.getStatus().equals("success")) {
