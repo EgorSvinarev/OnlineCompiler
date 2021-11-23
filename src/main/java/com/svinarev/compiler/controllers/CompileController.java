@@ -114,4 +114,36 @@ public class CompileController {
 		
 	}
 	
+//	BEGIN OF THE DOCUMENTATION	
+	@Operation(summary = "Исполнение кода с учетом pre_exercise кода",
+			   description = "Исполнение кода с подгрузкой pre_exercise кода упражнения.")
+	@ApiResponse(responseCode = "200", description = "Успешное выполнение операции.",
+				 content = @Content(schema = @Schema(implementation = ExecutionResultDTO.class))
+				)
+	@ApiResponse(responseCode = "500", description = "Ошибка исполнения.")
+//	END OF THE DOCUMENTATION
+	
+	@PostMapping(value = "/executeWithExercise/{exerciseId}", produces = {"application/json"})
+	public ResponseEntity<?> executeWithExercise(
+			@Parameter(description = "Пользовательский код для исполнения.", 
+	        	required = true, 
+	        	schema = @Schema(implementation = RawCodeDTO.class))
+			
+			@Valid @RequestBody RawCodeDTO code,
+			
+			@Parameter(description = "Id упражнения",
+					   required = true)
+			
+			@PathVariable Long exerciseId) {
+		
+		logger.debug("A request to an endpoint /executeWithExercise was received.");
+		
+		return ResponseEntity.ok(
+				ExecutionResultConverter.toDTO(
+						service.executeWithExercise(RawCodeConverter.fromDTO(code), exerciseId)
+				)
+		);
+		
+	}
+	
 }
