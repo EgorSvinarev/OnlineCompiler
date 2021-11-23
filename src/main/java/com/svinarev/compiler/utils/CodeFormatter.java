@@ -19,19 +19,26 @@ public class CodeFormatter {
 			   .build();
 	}
 	
-	public RawCode prepareSCT(RawCode code, Exercise exercise) {
-		String sct = String.format("%s\n", exercise.getPreExerciseCode() != null ? exercise.getPreExerciseCode(): "")
-					+ "from pythonwhat.test_exercise import prep_context\n"
-					+ "_, ctxt = prep_context()\n"
-					+ "globals().update(ctxt)\n"
-					+ "\n"
-					+ "from pythonwhat.test_exercise import setup_state\n"
-					+ "import limits\n"
-					+ String.format("setup_state(stu_code = \"\"\"%s\"\"\", sol_code = \"\"\"%s\"\"\")\n", code.getCode(), exercise.getSolution())
-					+ String.format("%s", exercise.getExpectation());
-		
+	public RawCode addPreExerciseCode(RawCode code, Exercise exercise) {
+		String result = String.format("%s\n", exercise.getPreExerciseCode() != null ? exercise.getPreExerciseCode(): "")
+						+ String.format("%s\n", code.getCode() != null ? code.getCode(): "");
 		return RawCode.builder()
-					.code(sct)
+					.code(result)
+				.build();
+	}
+	
+	public RawCode addSCT(RawCode code, Exercise exercise) {
+		String result = String.format("%s\n", code.getCode() != null ? code.getCode(): "")
+						+ "from pythonwhat.test_exercise import prep_context\n"
+						+ "_, ctxt = prep_context()\n"
+						+ "globals().update(ctxt)\n"
+						+ "\n"
+						+ "from pythonwhat.test_exercise import setup_state\n"
+						+ String.format("setup_state(stu_code = \"\"\"%s\"\"\", sol_code = \"\"\"%s\"\"\")\n", code.getCode(), exercise.getSolution())
+						+ String.format("%s", exercise.getExpectation() != null ? exercise.getExpectation(): "");
+	
+		return RawCode.builder()
+					.code(result)
 			   .build();
 	}
 	
