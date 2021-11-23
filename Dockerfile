@@ -47,6 +47,6 @@ ADD ${IMAGES_FOLDER} images
 COPY ${PYTHON_RQRMNT_FILE} requirments.txt
 
 # Install packages
-RUN pip3 install -r requirments.txt
+# RUN pip3 install -r requirments.txt
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
