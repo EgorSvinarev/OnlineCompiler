@@ -21,7 +21,7 @@ public class ExecutionResult {
 	}
 	
 	public static String parseError(String stacktrace) {
-		int begin = stacktrace.lastIndexOf(":");
+		int begin = stacktrace.lastIndexOf("protowhat.failure.TestFail: ") + 26;
 		
 		if (!(stacktrace.contains("Error") || stacktrace.contains("Exception") || stacktrace.contains("TestFail"))) return stacktrace;
 		
