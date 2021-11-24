@@ -107,6 +107,8 @@ public class CompilerService {
 //		Addition of the limits for the execution
 		code = codeFormatter.addLimits(code);
 		
+		logger.info(code.getCode());
+		
 //		Сode compilation and execution
 		ExecutionResult result = compile(code);
 		
@@ -131,8 +133,10 @@ public class CompilerService {
 		Exercise exercise = opt.get();
 		
 		RawCode exerciseCode;
-		exerciseCode = codeFormatter.addLimits(code);
-		exerciseCode = codeFormatter.addPreExerciseCode(exerciseCode, exercise);
+		exerciseCode = codeFormatter.addPreExerciseCode(code, exercise);
+		exerciseCode = codeFormatter.addLimits(exerciseCode);
+		
+		logger.info(exerciseCode.getCode());
 		
 		ExecutionResult result = compile(exerciseCode);
 		
@@ -178,11 +182,12 @@ public class CompilerService {
 		}
 		
 		RawCode exerciseCode;
-		exerciseCode = codeFormatter.addLimits(code);
+		exerciseCode = codeFormatter.addLimits();
 		exerciseCode = codeFormatter.addPreExerciseCode(exerciseCode, exercise);
-		exerciseCode = codeFormatter.addSCT(exerciseCode, exercise);
+		exerciseCode = codeFormatter.addSCT(code, exerciseCode, exercise);
 		
-		
+		logger.info(exerciseCode.getCode());
+//		
 		ExecutionResult result = compile(exerciseCode);
 		result.setError(ExecutionResult.parseError(result.getError()));
 		
@@ -276,9 +281,9 @@ public class CompilerService {
 		exercise = (Exercise) pair.get("exercise");
 		
 		RawCode exerciseCode;
-		exerciseCode = codeFormatter.addLimits(code);
+		exerciseCode = codeFormatter.addLimits();
 		exerciseCode = codeFormatter.addPreExerciseCode(exerciseCode, exercise);
-		exerciseCode = codeFormatter.addSCT(exerciseCode, exercise);
+		exerciseCode = codeFormatter.addSCT(code, exerciseCode, exercise);
 		
 		ExecutionResult execResult = compile(exerciseCode);
 		execResult.setError(ExecutionResult.parseError(execResult.getError()));
