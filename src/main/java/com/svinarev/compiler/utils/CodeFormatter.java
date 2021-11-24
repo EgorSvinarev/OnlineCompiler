@@ -11,8 +11,17 @@ import com.svinarev.compiler.entities.Exercise;
 @Component
 public class CodeFormatter {
 
+	public RawCode addLimits() {
+		String limitedCode = "import limits\n";
+		
+		return RawCode.builder()
+					.code(limitedCode)
+			   .build();
+	}
+	
 	public RawCode addLimits(RawCode code) {
-		String limitedCode = "import limits\n" + code.getCode();
+		String limitedCode = "import limits\n"
+								+ code.getCode();
 		
 		return RawCode.builder()
 					.code(limitedCode)
@@ -22,19 +31,20 @@ public class CodeFormatter {
 	public RawCode addPreExerciseCode(RawCode code, Exercise exercise) {
 		String result = String.format("%s\n", exercise.getPreExerciseCode() != null ? exercise.getPreExerciseCode(): "")
 						+ String.format("%s\n", code.getCode() != null ? code.getCode(): "");
+						
 		return RawCode.builder()
 					.code(result)
 				.build();
 	}
 	
-	public RawCode addSCT(RawCode code, Exercise exercise) {
-		String result = String.format("%s\n", code.getCode() != null ? code.getCode(): "")
+	public RawCode addSCT(RawCode studentCode, RawCode preparedCode, Exercise exercise) {
+		String result = String.format("%s\n", preparedCode.getCode() != null ? preparedCode.getCode(): "")
 						+ "from pythonwhat.test_exercise import prep_context\n"
 						+ "_, ctxt = prep_context()\n"
 						+ "globals().update(ctxt)\n"
 						+ "\n"
 						+ "from pythonwhat.test_exercise import setup_state\n"
-						+ String.format("setup_state(stu_code = \"\"\"%s\"\"\", sol_code = \"\"\"%s\"\"\")\n", code.getCode(), exercise.getSolution())
+						+ String.format("setup_state(stu_code = \"\"\"%s\"\"\", sol_code = \"\"\"%s\"\"\")\n", studentCode.getCode(), exercise.getSolution())
 						+ String.format("%s", exercise.getExpectation() != null ? exercise.getExpectation(): "");
 	
 		return RawCode.builder()
