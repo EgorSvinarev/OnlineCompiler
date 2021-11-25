@@ -38,15 +38,20 @@ public class CodeFormatter {
 	}
 	
 	public RawCode addSCT(RawCode studentCode, RawCode preparedCode, Exercise exercise) {
+		RawCode stu_code = addPreExerciseCode(studentCode, exercise);
+		RawCode sol_code = addPreExerciseCode(RawCode.builder().code(exercise.getSolution()).build(), exercise);
+		
+		
 		String result = String.format("%s\n", preparedCode.getCode() != null ? preparedCode.getCode(): "")
 						+ "from pythonwhat.test_exercise import prep_context\n"
 						+ "_, ctxt = prep_context()\n"
 						+ "globals().update(ctxt)\n"
 						+ "\n"
 						+ "from pythonwhat.test_exercise import setup_state\n"
-						+ String.format("setup_state(stu_code = \"\"\"%s\"\"\", sol_code = \"\"\"%s\"\"\")\n", studentCode.getCode(), exercise.getSolution())
+						+ String.format("setup_state(stu_code = \"\"\"%s\"\"\", sol_code = \"\"\"%s\"\"\")\n", stu_code.getCode(), sol_code.getCode())
 						+ String.format("%s", exercise.getExpectation() != null ? exercise.getExpectation(): "");
-	
+		System.out.println(result);
+		
 		return RawCode.builder()
 					.code(result)
 			   .build();
