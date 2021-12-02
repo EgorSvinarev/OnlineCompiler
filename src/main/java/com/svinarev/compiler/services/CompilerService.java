@@ -144,6 +144,70 @@ public class CompilerService {
 		
 	}
 	
+	public ExecutionResult executeWithExerciseAndPlot(RawCode code, Long exerciseId) {
+//		Getting exercise by id
+		Optional<Exercise> opt = exerciseRepository.findById(exerciseId);
+		
+		if (opt.isEmpty()) {
+			logger.debug("Exercise with id: {} wasn't found", exerciseId);
+			return ExecutionResult.builder()
+						.status("error")
+						.error(String.format("Exercise with id: %s wasn't found", exerciseId))
+						.output("")
+				   .build();	
+		}
+
+		Exercise exercise = opt.get();
+		
+//		Generating an image path		
+		String imgPath = IMG_DEST_DIR + File.separator + FileHandler.getStringID() + ".png";
+		logger.debug("The path to the image file {}.", imgPath);
+		
+//		Preparation of user code for the plotting a graph
+		Map<String, Object> pair = codeFormatter.preparePlotGraph(code, exercise, imgPath);
+		code = (RawCode) pair.get("code");
+		exercise = (Exercise) pair.get("exercise");
+		
+		RawCode exerciseCode;
+		exerciseCode = codeFormatter.addPreExerciseCode(code, exercise);
+		exerciseCode = codeFormatter.addLimits(exerciseCode);
+		
+		logger.info(exerciseCode.getCode());
+		
+		ExecutionResult execResult = compile(exerciseCode);
+		execResult.setError(ExecutionResult.parseError(execResult.getError()));
+		
+		if (execResult.getStatus().equals("success")) {
+		
+			try {
+//				Getting a byte array that represents an image
+				File f = new File(imgPath);
+				FileInputStream fis = new FileInputStream(f);
+				
+				byte[] byteArray = new byte[(int) f.length()];
+				fis.read(byteArray);
+				
+//				Convert a byte array to the Base64
+				String base64Image = Base64.getEncoder().encodeToString(byteArray);
+				
+				execResult.setBytePayload(String.format("data:image/png;base64,%s"	, base64Image));
+				
+				logger.debug("A graph was plotted. ");
+			
+				f.delete();
+				fis.close();
+			
+			}
+			catch (IOException exc) {
+			
+				logger.debug(exc.toString() + exc.fillInStackTrace().getMessage().toString());
+			}
+			
+		}	
+		
+		return execResult;
+	}
+	
 	public ExecutionResult checkExercise(RawCode code, Long exerciseId, Long userId) {
 //		Getting exercise by id
 		Optional<Exercise> opt = exerciseRepository.findById(exerciseId);
