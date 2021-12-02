@@ -128,21 +128,34 @@ public class CompileController {
 			@Parameter(description = "Пользовательский код для исполнения.", 
 	        	required = true, 
 	        	schema = @Schema(implementation = RawCodeDTO.class))
-			
 			@Valid @RequestBody RawCodeDTO code,
 			
 			@Parameter(description = "Id упражнения",
 					   required = true)
+			@PathVariable Long exerciseId,
 			
-			@PathVariable Long exerciseId) {
+			@Parameter(description = "Параметр, указывающий, что упражнение требует построение графика",
+					   required = false)
+			@RequestParam(name = "isGraphRequired", required = false, defaultValue = "false")
+			boolean isGraphRequired) {
 		
 		logger.debug("A request to an endpoint /executeWithExercise was received.");
 		
-		return ResponseEntity.ok(
-				ExecutionResultConverter.toDTO(
-						service.executeWithExercise(RawCodeConverter.fromDTO(code), exerciseId)
-				)
-		);
+		if (isGraphRequired) {
+			return ResponseEntity.ok(
+					ExecutionResultConverter.toDTO(
+							service.executeWithExerciseAndPlot(RawCodeConverter.fromDTO(code), exerciseId)
+					)
+			);
+		}
+		else {
+			return ResponseEntity.ok(
+					ExecutionResultConverter.toDTO(
+							service.executeWithExercise(RawCodeConverter.fromDTO(code), exerciseId)
+					)
+			);
+		}
+		
 		
 	}
 	
