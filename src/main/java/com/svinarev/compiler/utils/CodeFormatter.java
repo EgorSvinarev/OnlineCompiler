@@ -43,11 +43,11 @@ public class CodeFormatter {
 		
 		
 		String result = String.format("%s\n", preparedCode.getCode() != null ? preparedCode.getCode(): "")
-						+ "from pythonwhat.test_exercise import prep_context\n"
+						+ "from tcs_pythonwhat.test_exercise import prep_context\n"
 						+ "_, ctxt = prep_context()\n"
 						+ "globals().update(ctxt)\n"
 						+ "\n"
-						+ "from pythonwhat.test_exercise import setup_state\n"
+						+ "from tcs_pythonwhat.test_exercise import setup_state\n"
 						+ String.format("setup_state(stu_code = \"\"\"%s\"\"\", sol_code = \"\"\"%s\"\"\")\n", stu_code.getCode(), sol_code.getCode())
 						+ String.format("%s", exercise.getExpectation() != null ? exercise.getExpectation(): "");
 		System.out.println(result);
