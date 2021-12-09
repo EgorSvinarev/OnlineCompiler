@@ -3,6 +3,9 @@ import resource
 import os
 import sys
 
+# Changing the current directory
+os.chdir("/programs")
+
 # Exception hook that handles MemoryError
 def my_except_hook(exctype, value, traceback):
 	if exctype == MemoryError:
