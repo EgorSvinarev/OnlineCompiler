@@ -11,6 +11,7 @@ import com.svinarev.compiler.entities.Exercise;
 @Component
 public class CodeFormatter {
 
+	/** Adding import of the limitation code to the empty code*/
 	public RawCode addLimits() {
 		String limitedCode = "import limits\n";
 		
@@ -19,6 +20,7 @@ public class CodeFormatter {
 			   .build();
 	}
 	
+	/** Adding import of the limitation code */
 	public RawCode addLimits(RawCode code) {
 		String limitedCode = "import limits\n"
 								+ code.getCode();
@@ -28,7 +30,9 @@ public class CodeFormatter {
 			   .build();
 	}
 	
+	/** Adding pre_exercise_code */
 	public RawCode addPreExerciseCode(RawCode code, Exercise exercise) {
+//		заменить ("%s\n") на exercise.getPreerewfwefwjkeflwekljfef + "\n" if != null
 		String result = String.format("%s\n", exercise.getPreExerciseCode() != null ? exercise.getPreExerciseCode(): "")
 						+ String.format("%s\n", code.getCode() != null ? code.getCode(): "");
 						
@@ -37,6 +41,7 @@ public class CodeFormatter {
 				.build();
 	}
 	
+	/** Adding expectation code */
 	public RawCode addSCT(RawCode studentCode, RawCode preparedCode, Exercise exercise) {
 		RawCode stu_code = addPreExerciseCode(studentCode, exercise);
 		RawCode sol_code = addPreExerciseCode(RawCode.builder().code(exercise.getSolution()).build(), exercise);
@@ -57,6 +62,7 @@ public class CodeFormatter {
 			   .build();
 	}
 	
+	/** Processing expectation code for plotting a graph */
 	public Map<String, Object> preparePlotGraph(RawCode code, Exercise exercise, String filePath) {
 		Map<String, Object> result = new HashMap<>();
 		
@@ -79,6 +85,24 @@ public class CodeFormatter {
 		
 		return result;
 		
+	}
+	
+	/** Counting the number of lines in the code */
+	public int countLines(String text) {
+		if (text == null) return 0;
+		return (int) text.chars().filter(ch -> (ch == '\n' || ch == '\r')).count();
+	}
+	
+	/** Replacing the line number with an error in the traceback */
+	public String prepareTraceback(String traceback, int lengthDifference) {
+		int beginIndex = traceback.indexOf("line ") + 5;
+		int endIndex = traceback.indexOf(", in <module>");
+		
+		int lineNumber = Integer.parseInt(traceback.substring(beginIndex, endIndex)) - lengthDifference;
+		
+		String processedTraceback = String.format("%s %d%s", traceback.substring(0, beginIndex - 1), lineNumber, traceback.substring(endIndex));
+		
+		return processedTraceback;
 	}
 	
 }
