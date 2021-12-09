@@ -140,6 +140,13 @@ public class CompilerService {
 		
 		ExecutionResult result = compile(exerciseCode);
 		
+		int initLength = codeFormatter.countLines(code.getCode());
+		int resultLength = codeFormatter.countLines(exerciseCode.getCode()) - 1;
+		
+		String proccesedTraceback = codeFormatter.prepareTraceback(result.getError(), resultLength - initLength);
+		result.setError(proccesedTraceback);
+		logger.info("Processed traceback: {}", proccesedTraceback);
+		
 		return result;
 		
 	}
@@ -175,7 +182,13 @@ public class CompilerService {
 		logger.info(exerciseCode.getCode());
 		
 		ExecutionResult execResult = compile(exerciseCode);
-		execResult.setError(ExecutionResult.parseError(execResult.getError()));
+		
+		int initLength = codeFormatter.countLines(code.getCode());
+		int resultLength = codeFormatter.countLines(exerciseCode.getCode()) - 1;
+		
+		String proccesedTraceback = codeFormatter.prepareTraceback(execResult.getError(), resultLength - initLength);
+		execResult.setError(proccesedTraceback);
+		logger.info("Processed traceback: {}", proccesedTraceback);
 		
 		if (execResult.getStatus().equals("success")) {
 		
