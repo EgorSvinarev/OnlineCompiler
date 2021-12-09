@@ -8,4 +8,4 @@ matplotlib==3.5.0
 tensorflow==2.7
 xgboost==1.5
 scikit-learn==1.0.1
-pythonwhat==2.24.0
+tcs_pythonwhat==2.24.20
