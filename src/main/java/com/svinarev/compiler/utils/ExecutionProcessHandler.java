@@ -18,6 +18,7 @@ public class ExecutionProcessHandler {
 	
 	Logger logger = LoggerFactory.getLogger(CompileController.class);
 	
+	/** Executes the .py file */
 	public ExecutionResult execute(String path) throws Exception {
 		String command = "python3 " + path;
 		
@@ -40,12 +41,14 @@ public class ExecutionProcessHandler {
 			   .build();
 	}
 	
+	/** Starts the execution process in the OS */
 	private static Process startProcess(String command) throws Exception {
 		Process process = Runtime.getRuntime().exec(command);
 		
 		return process;
 	}
 	
+	/** Reads the output stream from the process */
 	private static String readStream(InputStream stream) throws Exception {
 		InputStreamReader inputStreamReader = new InputStreamReader(stream, "utf-8");
 		

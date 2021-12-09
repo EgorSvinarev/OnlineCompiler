@@ -33,14 +33,14 @@ public class CodeFormatter {
 	/** Adding pre_exercise_code */
 	public RawCode addPreExerciseCode(RawCode code, Exercise exercise) {
 //		заменить ("%s\n") на exercise.getPreerewfwefwjkeflwekljfef + "\n" if != null
-		String result = String.format("%s\n", exercise.getPreExerciseCode() != null ? exercise.getPreExerciseCode(): "")
+		String result = String.format("%s", (exercise.getPreExerciseCode() != null || exercise.getPreExerciseCode().length() > 0)? exercise.getPreExerciseCode() + "\n" : "")
 						+ String.format("%s\n", code.getCode() != null ? code.getCode(): "");
 						
 		return RawCode.builder()
 					.code(result)
 				.build();
 	}
-	
+
 	/** Adding expectation code */
 	public RawCode addSCT(RawCode studentCode, RawCode preparedCode, Exercise exercise) {
 		RawCode stu_code = addPreExerciseCode(studentCode, exercise);
@@ -93,11 +93,27 @@ public class CodeFormatter {
 		return (int) text.chars().filter(ch -> (ch == '\n' || ch == '\r')).count();
 	}
 	
+	/** Сounting the length of a sequence of characters of a number in a string */
+	public int countNumberLength(String str) {
+		int length = 0; 
+		
+		for (int i = 0; i < str.length(); i++) {
+			if (!Character.isDigit(str.charAt(i))) {
+				break;
+			}
+			length++;
+		}
+		
+		return length;
+	}
+	
 	/** Replacing the line number with an error in the traceback */
 	public String prepareTraceback(String traceback, int lengthDifference) {
 		int beginIndex = traceback.indexOf("line ") + 5;
-		int endIndex = traceback.indexOf(", in <module>");
 		
+		if (beginIndex == 4) return traceback;
+		
+		int endIndex = beginIndex + countNumberLength(traceback.substring(beginIndex));
 		int lineNumber = Integer.parseInt(traceback.substring(beginIndex, endIndex)) - lengthDifference;
 		
 		String processedTraceback = String.format("%s %d%s", traceback.substring(0, beginIndex - 1), lineNumber, traceback.substring(endIndex));

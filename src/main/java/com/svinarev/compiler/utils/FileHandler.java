@@ -20,6 +20,7 @@ public class FileHandler {
 	
 	Logger logger = LoggerFactory.getLogger(CompileController.class);
 	
+	/** Returns a string that contains the current time in the format 'yyyyMMddHHmmssSSS' */
 	public static String getStringID() {
 		
 		Date date = new Date();
@@ -31,6 +32,7 @@ public class FileHandler {
 		
 	}
 	
+	/** Writes some data to the file */
 	public void write(String data, String path) throws IOException {
 		File file = new File(path);
 		File parentFile = file.getParentFile();
@@ -54,6 +56,7 @@ public class FileHandler {
         }
 	}
 	
+	/** Deletes a file*/
 	public void delete(String path) {
 		File file = new File(path);
 		
@@ -61,6 +64,7 @@ public class FileHandler {
 		logger.debug("File {} was successfully deleted.", path);
 	}
 	
+	/** Reads a file */
 	public String read(String path) {
 		File file = new File(path);
 		
