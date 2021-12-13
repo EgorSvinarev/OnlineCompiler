@@ -149,6 +149,7 @@ public class CompilerService {
 		/* Formatting the traceback */
 		int initLength = codeFormatter.countLines(code.getCode());
 		int resultLength = codeFormatter.countLines(exerciseCode.getCode()) - 1;
+		
 		String proccesedTraceback = codeFormatter.prepareTraceback(result.getError(), resultLength - initLength);
 		
 		result.setError(proccesedTraceback);
@@ -271,6 +272,8 @@ public class CompilerService {
 						.output("")
 				   .build();
 		}
+				
+//		The main test of the exercise
 		
 		RawCode exerciseCode;
 		
@@ -279,7 +282,7 @@ public class CompilerService {
 		exerciseCode = codeFormatter.addPreExerciseCode(exerciseCode, exercise);
 		exerciseCode = codeFormatter.addSCT(code, exerciseCode, exercise);
 		
-		logger.info(exerciseCode.getCode());
+		logger.info("ExerciseCode: {}", exerciseCode.getCode());
 		
 		/* Compiling code*/		
 		ExecutionResult execResult = compile(exerciseCode);
@@ -292,6 +295,25 @@ public class CompilerService {
 		
 		
 		if (execResult.getStatus().equals("success")) {
+//			The code is executed with pre_exercise_code to check for syntax errors
+			
+			RawCode preCode;
+			
+			/* Formatting the code to execute. Addding limits and pre_exercise_code */
+			preCode = codeFormatter.addPreExerciseCode(code, exercise);
+			preCode = codeFormatter.addLimits(preCode);
+			
+			logger.info("Precode: {}", preCode.getCode());
+			
+			/* Compiling precode*/
+			ExecutionResult preResult = compile(preCode);
+			
+			if (preResult.getStatus().equals("error")) {
+				preResult.setError("Ваш код содержит ошибку. Исправьте её и попробуйте снова!");
+				return preResult;
+			}
+
+			
 			/* Entering a data into the database that the exercise was completed */
 			ExerciseUserPair exUsPair = ExerciseUserPair.builder()
 					    					.userId(userId)
@@ -382,14 +404,18 @@ public class CompilerService {
 		code = (RawCode) pair.get("code");
 		exercise = (Exercise) pair.get("exercise");
 		
+		
+//		The main test of the exercise
 		RawCode exerciseCode;
 		
-		/* Formatting the code to execute. Addding limits and pre_exercise_code */
+		/* Formatting the code to execute. Addding limits, pre_exercise_code and expectations */
 		exerciseCode = codeFormatter.addLimits();
 		exerciseCode = codeFormatter.addPreExerciseCode(exerciseCode, exercise);
 		exerciseCode = codeFormatter.addSCT(code, exerciseCode, exercise);
 		
-		/* Compiling code*/
+		logger.info("ExerciseCode: {}", exerciseCode.getCode());
+		
+		/* Compiling code*/		
 		ExecutionResult execResult = compile(exerciseCode);
 		
 		/* Formatting the feedback */
@@ -400,6 +426,23 @@ public class CompilerService {
 		
 		if (execResult.getStatus().equals("success")) {
 		
+//			The code is executed with pre_exercise_code to check for syntax errors
+			RawCode preCode;
+			
+			/* Formatting the code to execute. Addding limits and pre_exercise_code */
+			preCode = codeFormatter.addPreExerciseCode(code, exercise);
+			preCode = codeFormatter.addLimits(preCode);
+			
+			logger.info("Precode: {}", preCode.getCode());
+			
+			/* Compiling code*/
+			ExecutionResult preResult = compile(preCode);
+			
+			if (preResult.getStatus().equals("error")) {
+				preResult.setError("Ваш код содержит ошибку. Исправьте её и попробуйте снова!");
+				return preResult;
+			}
+			
 			try {
 				/* Getting a byte array that represents an image */
 				File f = new File(imgPath);
