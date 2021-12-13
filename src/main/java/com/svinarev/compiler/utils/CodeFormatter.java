@@ -90,7 +90,7 @@ public class CodeFormatter {
 	/** Counting the number of lines in the code */
 	public int countLines(String text) {
 		if (text == null) return 0;
-		return (int) text.chars().filter(ch -> (ch == '\n' || ch == '\r')).count();
+		return (int) text.chars().filter(ch -> (ch == '\n')).count() + 1;
 	}
 	
 	/** Сounting the length of a sequence of characters of a number in a string */
@@ -120,5 +120,4 @@ public class CodeFormatter {
 		
 		return processedTraceback;
 	}
-	
 }
