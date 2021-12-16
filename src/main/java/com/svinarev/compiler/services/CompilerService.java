@@ -107,14 +107,29 @@ public class CompilerService {
 	public ExecutionResult execute(RawCode code) {
 		
 		/* Addition of the limits for the execution */
-		code = codeFormatter.addLimits(code);
+		RawCode limitedCode = codeFormatter.addLimits(code);
 		
-		logger.info(code.getCode());
+		logger.info(limitedCode.getCode());
 		
 		/* Compilation of code */
-		ExecutionResult result = compile(code);
+		ExecutionResult execResult = compile(limitedCode);
 		
-		return result;
+		/* Formatting the traceback */
+		int initLength = codeFormatter.countLines(code.getCode());
+		int resultLength = codeFormatter.countLines(limitedCode.getCode());
+		String proccesedTraceback = codeFormatter.prepareTraceback(execResult.getError(), resultLength - initLength);
+		
+		if (initLength > 1) {
+			resultLength -= 1;
+		}
+		
+		logger.info("InitLength: {}", initLength);
+		logger.info("ResultLength: {}", resultLength);
+		
+		execResult.setError(proccesedTraceback);
+		logger.info("Processed traceback: {}", proccesedTraceback);
+		
+		return execResult;
 		
 	}
 	
@@ -148,7 +163,14 @@ public class CompilerService {
 		
 		/* Formatting the traceback */
 		int initLength = codeFormatter.countLines(code.getCode());
-		int resultLength = codeFormatter.countLines(exerciseCode.getCode()) - 1;
+		int resultLength = codeFormatter.countLines(exerciseCode.getCode());
+		
+		if (initLength > 1) {
+			resultLength -= 1;
+		}
+		
+		logger.info("InitLength: {}", initLength);
+		logger.info("ResultLength: {}", resultLength);
 		
 		String proccesedTraceback = codeFormatter.prepareTraceback(result.getError(), resultLength - initLength);
 		
@@ -198,8 +220,16 @@ public class CompilerService {
 		
 		/* Formatting the traceback */
 		int initLength = codeFormatter.countLines(code.getCode());
-		int resultLength = codeFormatter.countLines(exerciseCode.getCode()) - 1;
-		String proccesedTraceback = codeFormatter.prepareTraceback(execResult.getError(), resultLength - initLength);
+		int resultLength = codeFormatter.countLines(exerciseCode.getCode());
+		
+		if (initLength > 1) {
+			resultLength -= 1;
+		}
+		
+		logger.info("InitLength: {}", initLength);
+		logger.info("ResultLength: {}", resultLength);
+		
+		String proccesedTraceback = codeFormatter.prepareTraceback(execResult.getError(), resultLength - initLength - 1);
 		
 		execResult.setError(proccesedTraceback);
 		logger.info("Processed traceback: {}", proccesedTraceback);
@@ -289,7 +319,19 @@ public class CompilerService {
 		
 		/* Formatting the feedback */
 		execResult.setError(ExecutionResult.parseError(execResult.getError()));
-		String proccesedTraceback = codeFormatter.prepareTraceback(execResult.getError(), exercise.getPreExerciseCode().length() + 1);
+		
+		int initLength = codeFormatter.countLines(code.getCode());
+		int resultLength = codeFormatter.countLines(exercise.getPreExerciseCode()) + initLength;
+		
+		if (initLength == 1) {
+			resultLength -= 1;
+		}
+		
+		logger.info("InitLength: {}", initLength);
+		logger.info("ResultLength: {}", resultLength);
+		
+		String proccesedTraceback = codeFormatter.prepareTraceback(execResult.getError(), resultLength - initLength);
+		
 		logger.info("Processed traceback: {}", proccesedTraceback);
 		execResult.setError(proccesedTraceback);
 		
@@ -420,7 +462,19 @@ public class CompilerService {
 		
 		/* Formatting the feedback */
 		execResult.setError(ExecutionResult.parseError(execResult.getError()));
-		String proccesedTraceback = codeFormatter.prepareTraceback(execResult.getError(), exercise.getPreExerciseCode().length());
+		
+		int initLength = codeFormatter.countLines(code.getCode());
+		int resultLength = codeFormatter.countLines(exercise.getPreExerciseCode()) + initLength;
+		
+		if (initLength == 1) {
+			resultLength -= 1;
+		}
+		
+		logger.info("InitLength: {}", initLength);
+		logger.info("ResultLength: {}", resultLength);
+		
+		String proccesedTraceback = codeFormatter.prepareTraceback(execResult.getError(), resultLength - initLength);
+		
 		logger.info("Processed traceback: {}", proccesedTraceback);
 		execResult.setError(proccesedTraceback);
 		
