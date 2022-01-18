@@ -8,8 +8,6 @@ import io.sentry.Sentry;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.nio.file.Files;
 import java.util.Optional;
 import java.util.Map;
 import java.util.Base64;
@@ -40,10 +38,13 @@ import java.time.LocalDateTime;
 public class CompilerService {
 
 	@Value(value = "${programs.dest_dir}")
-	private String DEST_DIR;
+	private String PY_DEST_DIR;
 	
 	@Value(value = "${images.dest_dir}")
 	private String IMG_DEST_DIR;
+	
+	@Value (value = "${kernels.manager_file}")
+	private String KRNL_MANAGER_FILE;
 	
 	@Autowired
 	private ExecutionProcessHandler execHandler;
@@ -68,7 +69,7 @@ public class CompilerService {
 	/** Compiling of user code */
 	public ExecutionResult compile(RawCode code) {
 		/* Generating a file path */
-		String path = DEST_DIR + File.separator + FileHandler.getStringID() + ".py";
+		String path = PY_DEST_DIR + File.separator + FileHandler.getStringID() + ".py";
 		logger.debug("The path to the compiled file {}.", path);
 		
 		ExecutionResult result;
@@ -76,7 +77,7 @@ public class CompilerService {
 		try{
 			/* Writing a user code to the file for compilation */
 			fileHandler.write(code.getCode(), path);
-			result = execHandler.execute(path);	
+			result = execHandler.execute("python3 " + path);	
 		}
 		catch (Exception e) {
 			logger.debug(e.toString() + e.fillInStackTrace().getMessage().toString());
@@ -303,8 +304,7 @@ public class CompilerService {
 				   .build();
 		}
 				
-//		The main test of the exercise
-		
+		/* The main test of the exercise */
 		RawCode exerciseCode;
 		
 		/* Formatting the code to execute. Addding limits, pre_exercise_code and expectations */
@@ -337,8 +337,7 @@ public class CompilerService {
 		
 		
 		if (execResult.getStatus().equals("success")) {
-//			The code is executed with pre_exercise_code to check for syntax errors
-			
+			/* The code is executed with pre_exercise_code to check for syntax errors */
 			RawCode preCode;
 			
 			/* Formatting the code to execute. Addding limits and pre_exercise_code */
@@ -447,7 +446,7 @@ public class CompilerService {
 		exercise = (Exercise) pair.get("exercise");
 		
 		
-//		The main test of the exercise
+		/* The main test of the exercise */
 		RawCode exerciseCode;
 		
 		/* Formatting the code to execute. Addding limits, pre_exercise_code and expectations */
@@ -480,7 +479,7 @@ public class CompilerService {
 		
 		if (execResult.getStatus().equals("success")) {
 		
-//			The code is executed with pre_exercise_code to check for syntax errors
+			/* The code is executed with pre_exercise_code to check for syntax errors */
 			RawCode preCode;
 			
 			/* Formatting the code to execute. Addding limits and pre_exercise_code */
@@ -535,10 +534,70 @@ public class CompilerService {
 			
 		}
 		
-		
-		
-		
 		return execResult;
+	}
+	
+	/** Starts an IPython Shell and returns id of the connection file */
+	public ExecutionResult startKernel() {
+		/* Generating a file path */
+		String path = KRNL_MANAGER_FILE;
+		
+		ExecutionResult result;
+		
+		try{
+			result = execHandler.execute("python3 " + path);
+		}
+		catch (Exception e) {
+			logger.debug(e.toString() + e.fillInStackTrace().getMessage().toString());
+			String error = e.getMessage() + ": " + e.fillInStackTrace().getMessage().toString();
+			
+			Sentry.captureException(e);
+			
+			result = ExecutionResult.builder()
+						.output("")
+						.status("error")
+						.error(error)
+				   .build();
+		}
+		
+		logger.info("Result of the kernel starting: {}", result);
+		
+		return result;
+	}
+	
+	/** Executes code inside the kernel selected by id */
+	public ExecutionResult executeInKernel(RawCode code, String kernelId) {
+		String command = String.format("jupyter console --simple-prompt --existing kernels/connection_files/kernel-%s.json", kernelId);
+	
+		logger.debug("Command: {}", command);
+		
+		ExecutionResult result;
+		
+		try{
+			result = execHandler.execute(command, code.getCode());	
+		}
+		catch (Exception e) {
+			logger.debug(e.toString() + e.fillInStackTrace().getMessage().toString());
+			String error = e.getMessage() + ": " + e.fillInStackTrace().getMessage().toString();
+			
+			Sentry.captureException(e);
+			
+			result = ExecutionResult.builder()
+						.output("")
+						.status("error")
+						.error(error)
+				   .build();
+
+		}
+		
+		logger.debug("Output: {}", result.getOutput());
+		
+		result.setOutput(result.parseShellFeedback(result.getOutput()));
+		
+		logger.info("Result of the execution inside the kernel: {}", result);
+		
+		return result;
+		
 	}
 	
 }
