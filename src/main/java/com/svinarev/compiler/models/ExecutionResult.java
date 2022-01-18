@@ -30,4 +30,26 @@ public class ExecutionResult {
 		return stacktrace.substring(begin + 2);
 	}
 	
+	public static String parseShellFeedback(String feedback) {
+		/* Index of the feedback's begin */
+		int begin = feedback.indexOf("In [1]: ") + 8;
+		if (begin == 7) return feedback;
+		
+		String tmp = feedback.substring(begin);
+		
+		/* Index of useless tail */
+		int end = tmp.lastIndexOf(" Do you really want to exit ([y]/n)? \nkeeping kernel alive") - 9;
+		/* If the feedback is empty then we return an empty string */
+		if (end == -1) end = 0;
+		/* The case when the useless tail wasn't found */
+		if (end == -9) return tmp;
+		
+		tmp = tmp.substring(0, end);
+		if (tmp.length() > 0 && tmp.charAt(tmp.length() - 1) =='\n') {
+			return tmp.substring(0, tmp.length() - 1);
+		}
+		
+		return tmp;
+	}
+	
 }
