@@ -1,9 +1,15 @@
 package com.svinarev.compiler.utils;
 
+
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.SequenceInputStream;
+
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,16 +24,20 @@ public class ExecutionProcessHandler {
 	
 	Logger logger = LoggerFactory.getLogger(CompileController.class);
 	
-	/** Executes the .py file */
-	public ExecutionResult execute(String path) throws Exception {
-		String command = "python3 " + path;
+	/** Executes the process */
+	public ExecutionResult execute(String command) throws Exception {
 		
 		Process process = startProcess(command);
 		
 		logger.debug("Execution process with a pid {} was successfully started.", process.pid());
 		
+		process.waitFor();
+		
+		logger.debug("Start reading");
 		String output = readStream(process.getInputStream());
+		logger.debug("Stdout was read");
 		String error = readStream(process.getErrorStream());
+		logger.debug("Stderr was read");
 		String status = (error.length() == 0) ? "success" : "error";
 		
 		process.destroy();
@@ -41,18 +51,46 @@ public class ExecutionProcessHandler {
 			   .build();
 	}
 	
+	/** Executes the process with writing data to the STDIN*/
+	public ExecutionResult execute(String command, String data) throws Exception {
+		
+		Process process = startProcess(command);
+		
+		logger.debug("Execution process with a pid {} was successfully started.", process.pid());
+		
+		writeStream(process.getOutputStream(), data);
+		
+		process.waitFor();
+		
+		logger.debug("Start reading");
+		String output = readStream(process.getInputStream());
+		logger.debug("Stdout was read");
+		String error = readStream(process.getErrorStream());
+		logger.debug("Stderr was read");
+		String status = (error.length() == 0) ? "success" : "error";
+		
+		process.destroy();
+		logger.debug("Execution process with a pid {} was successfully destroyed.", process.pid());
+		
+		
+		return ExecutionResult.builder()
+					.status(status)
+					.output(output)
+					.error(error)
+			   .build();		
+	}
+	
+	
 	/** Starts the execution process in the OS */
-	private static Process startProcess(String command) throws Exception {
+	private Process startProcess(String command) throws Exception {
 		Process process = Runtime.getRuntime().exec(command);
 		
 		return process;
 	}
 	
 	/** Reads the output stream from the process */
-	private static String readStream(InputStream stream) throws Exception {
-		InputStreamReader inputStreamReader = new InputStreamReader(stream, "utf-8");
-		
-		BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+	private String readStream(InputStream stdOut) throws Exception {	
+		BufferedReader reader = new BufferedReader(new InputStreamReader(stdOut, "utf-8"));
 		
 		StringBuilder stringBuilder = new StringBuilder();
 		StringBuilder response = new StringBuilder();
@@ -60,10 +98,9 @@ public class ExecutionProcessHandler {
 		String[] splitArray;
 		String msg;
 		
-		while ((msg = bufferedReader.readLine()) != null) {
-			
+		while ((msg = reader.readLine()) != null) {
+			logger.debug(msg);
 			stringBuilder.append(msg).append("\n");
-			
 		}
 		
 		String control = stringBuilder.toString();
@@ -73,14 +110,21 @@ public class ExecutionProcessHandler {
 			response.append(s).append("\n");
 		}
 		
-		bufferedReader.close();
-		inputStreamReader.close();
+		reader.close();
 		
 		String output = response.toString();
 		output = (output == null || output.length() == 0) ? "" : (output.substring(0, output.length() - 1));
 				
 		return output;
 
+	}
+	
+	public void writeStream(OutputStream stdIn, String data) throws Exception {
+		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(stdIn));
+		
+		writer.write(data);
+		writer.flush();
+		writer.close();
 	}
 	
 }
