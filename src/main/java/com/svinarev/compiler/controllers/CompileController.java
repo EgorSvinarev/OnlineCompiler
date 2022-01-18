@@ -23,6 +23,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import com.svinarev.compiler.services.CompilerService;
 import com.svinarev.compiler.dto.ExecutionResultDTO;
 import com.svinarev.compiler.dto.RawCodeDTO;
+import com.svinarev.compiler.utils.CodeFormatter;
 import com.svinarev.compiler.converters.RawCodeConverter;
 import com.svinarev.compiler.converters.ExecutionResultConverter;
 
@@ -156,6 +157,60 @@ public class CompileController {
 			);
 		}
 		
+		
+	}
+	
+	
+//	BEGIN OF THE DOCUMENTATION	
+	@Operation(summary = "Создание ядра IPython Shell",
+			   description = "Запуск ядра IPython Shell для исполнения в нем кода пользователя.")
+	@ApiResponse(responseCode = "200", description = "Успешное выполнение операции.",
+				 content = @Content(schema = @Schema(implementation = ExecutionResultDTO.class))
+				)
+	@ApiResponse(responseCode = "500", description = "Ошибка исполнения.")
+//	END OF THE DOCUMENTATION
+//	
+	@PostMapping(value = "/shell/startKernel", produces = {"application/json"})
+	public ResponseEntity<?> startKernel() {
+		
+		logger.debug("A request to an endpoint /shell/startKernel was received.");
+			
+		return ResponseEntity.ok(
+				ExecutionResultConverter.toDTO(
+						service.startKernel()
+				)
+		);
+		
+	}
+	
+//	BEGIN OF THE DOCUMENTATION	
+	@Operation(summary = "Исполнение кода в IPython Shell",
+			   description = "Исполнение кода в IPython Shell.")
+	@ApiResponse(responseCode = "200", description = "Успешное выполнение операции.",
+				 content = @Content(schema = @Schema(implementation = ExecutionResultDTO.class))
+				)
+	@ApiResponse(responseCode = "500", description = "Ошибка исполнения.")
+//	END OF THE DOCUMENTATION
+//	
+	@PostMapping(value = "/shell/execute/{kernelId}", produces = {"application/json"})
+	public ResponseEntity<?> executeInKernel(
+					@Parameter(description = "Пользовательский код для исполнения.", 
+			        	required = true, 
+			        	schema = @Schema(implementation = RawCodeDTO.class))
+					
+					@Valid @RequestBody RawCodeDTO code,
+					
+					@Parameter(description = "Id ядра, в котором должен исполняться код.",
+						required = true)
+					@PathVariable String kernelId) {
+				
+				logger.debug("A request to an endpoint /execute was received.");
+				
+				return ResponseEntity.ok(
+						ExecutionResultConverter.toDTO(
+								service.executeInKernel(RawCodeConverter.fromDTO(code), kernelId)
+						)
+				);
 		
 	}
 	
