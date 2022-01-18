@@ -9,14 +9,17 @@ RUN apt install -y software-properties-common
 # Install JDK-11 
 RUN apt-get -y install openjdk-11-jdk
 
-#Install curl
+# Install curl
 RUN apt-get -y install curl
 
-#Install vim
+# Install jupyter
+RUN apt-get -y install jupyter
+
+# Install vim
 RUN apt-get update
 RUN apt-get -y install vim
 
-#Install iptables
+# Install iptables
 RUN  apt-get -y install iptables
 
 # Install Tomcat9 
@@ -38,12 +41,14 @@ ARG CONFIG_FOLDER=config
 ARG WHITELIST_FOLDER=whitelist
 ARG PYTHON_RQRMNT_FILE=requirments.txt
 ARG IMAGES_FOLDER=images
+ARG KERNEL_FOLDER=kernels
 
 COPY ${JAR_FILE} app.jar
 ADD ${COMPILE_DIST_FOLDER} programs
 ADD ${CONFIG_FOLDER} config
 ADD ${WHITELIST_FOLDER} whitelist
 ADD ${IMAGES_FOLDER} images
+ADD ${KERNEL_FOLDER} kernels
 COPY ${PYTHON_RQRMNT_FILE} requirments.txt
 
 # Install packages
