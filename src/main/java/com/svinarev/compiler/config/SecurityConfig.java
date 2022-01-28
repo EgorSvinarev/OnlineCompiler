@@ -1,6 +1,7 @@
 package com.svinarev.compiler.config;
 
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -25,12 +26,13 @@ import com.svinarev.compiler.filters.CustomTokenAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
+@PropertySource(value = "classpath:application.properties")
 public class SecurityConfig extends WebSecurityConfigurerAdapter implements WebMvcConfigurer {
 	
-	@Value("${whitelist.file}")
+	@Value(value = "${whitelist.file}")
 	private String whitelistFile;
 	
-	@Value("${jwt.secret}")
+	@Value(value = "${jwt.secret}")
 	private String jwtSecretKey;
 	
 	@Autowired
