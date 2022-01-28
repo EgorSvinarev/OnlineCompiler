@@ -12,9 +12,6 @@ RUN apt-get -y install openjdk-11-jdk
 # Install curl
 RUN apt-get -y install curl
 
-# Install jupyter
-RUN apt-get -y install jupyter
-
 # Install vim
 RUN apt-get update
 RUN apt-get -y install vim
@@ -36,19 +33,13 @@ ENV PATH $PATH:$CATALINA_HOME/bin
 EXPOSE 8080  
  
 ARG JAR_FILE=target/online-compiler-0.0.1-SNAPSHOT.jar
-ARG COMPILE_DIST_FOLDER=programs
-ARG CONFIG_FOLDER=config
-ARG WHITELIST_FOLDER=whitelist
+ARG COMMON_FOLDER=common
+ARG PROGRAMS_FOLDER=programs/prod
 ARG PYTHON_RQRMNT_FILE=requirments.txt
-ARG IMAGES_FOLDER=images
-ARG KERNEL_FOLDER=kernels
 
 COPY ${JAR_FILE} app.jar
-ADD ${COMPILE_DIST_FOLDER} programs
-ADD ${CONFIG_FOLDER} config
-ADD ${WHITELIST_FOLDER} whitelist
-ADD ${IMAGES_FOLDER} images
-ADD ${KERNEL_FOLDER} kernels
+ADD ${COMMON_FOLDER} common
+ADD ${PROGRAMS_FOLDER} programs
 COPY ${PYTHON_RQRMNT_FILE} requirments.txt
 
 # Install packages
