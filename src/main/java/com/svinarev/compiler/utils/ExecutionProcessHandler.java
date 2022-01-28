@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import com.svinarev.compiler.controllers.CompileController;
 import com.svinarev.compiler.models.ExecutionResult;
+import com.svinarev.compiler.models.DemonExecutionResult;
 
 import org.springframework.stereotype.Component;
 
@@ -80,6 +81,30 @@ public class ExecutionProcessHandler {
 			   .build();		
 	}
 	
+	/** Executes the demon */
+	public DemonExecutionResult executeDemon(String command) throws Exception {
+		Process process = startProcess(command);
+		
+		logger.debug("Execution process with a pid {} was successfully started.", process.pid());
+		
+		process.waitFor(1, TimeUnit.SECONDS);
+		
+		logger.debug("Start reading");
+		String output = readDemonStream(process.getErrorStream(), 3);
+		logger.debug("Stdout was read");
+		String error = "";
+		logger.debug("Stderr was read");
+		String status = (error.length() == 0) ? "success" : "error";
+		
+		long pid = process.pid();
+		
+		return DemonExecutionResult.demonExecResBuilder()
+				.status(status)
+				.output(output)
+				.error(error)
+				.pid(pid)
+		   .build();
+	}
 	
 	/** Starts the execution process in the OS */
 	private Process startProcess(String command) throws Exception {
@@ -87,6 +112,45 @@ public class ExecutionProcessHandler {
 		
 		return process;
 	}
+	
+	public void killProcess(long pid) {
+		
+	}
+	
+	/** Reads the output stream from the demon */
+	private String readDemonStream(InputStream stdOut, int linesNumber) throws Exception {	
+//		logger.debug("{}", stdOut.available());
+
+		BufferedReader reader = new BufferedReader(new InputStreamReader(stdOut, "utf-8"));
+		
+		StringBuilder stringBuilder = new StringBuilder();
+		StringBuilder response = new StringBuilder();
+		
+		String[] splitArray;
+		String msg;
+		
+		int counter = 0;
+		
+		while (counter < linesNumber) {
+			msg = reader.readLine();
+			stringBuilder.append(msg).append("\n");
+			counter++;
+		}
+		
+		String control = stringBuilder.toString();
+		splitArray = control.split("\n");
+		
+		for (String s : splitArray) {
+			response.append(s).append("\n");
+		}
+		
+		reader.close();
+		
+		String output = response.toString();
+		output = (output == null || output.length() == 0) ? "" : (output.substring(0, output.length() - 1));
+				
+		return output;
+	}	
 	
 	/** Reads the output stream from the process */
 	private String readStream(InputStream stdOut) throws Exception {	
