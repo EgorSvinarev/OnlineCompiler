@@ -9,4 +9,7 @@ tensorflow==2.7
 xgboost==1.5
 scikit-learn==1.0.1
 tcs_pythonwhat==2.24.20
+jupyter==1.0.0
+ipython==7.30.1
+ipykernel==6.6.0
 jupyter_client==6.1.12
