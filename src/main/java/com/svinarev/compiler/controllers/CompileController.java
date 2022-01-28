@@ -170,14 +170,17 @@ public class CompileController {
 	@ApiResponse(responseCode = "500", description = "Ошибка исполнения.")
 //	END OF THE DOCUMENTATION
 //	
-	@PostMapping(value = "/shell/startKernel", produces = {"application/json"})
-	public ResponseEntity<?> startKernel() {
+	@PostMapping(value = "/shell/startKernel/{exerciseId}", produces = {"application/json"})
+	public ResponseEntity<?> startKernel(
+			@Parameter(description = "Id упражнения",
+			   required = true)
+			@PathVariable Long exerciseId) {
 		
 		logger.debug("A request to an endpoint /shell/startKernel was received.");
 			
 		return ResponseEntity.ok(
 				ExecutionResultConverter.toDTO(
-						service.startKernel()
+						service.startKernel(exerciseId)
 				)
 		);
 		
@@ -204,7 +207,7 @@ public class CompileController {
 						required = true)
 					@PathVariable String kernelId) {
 				
-				logger.debug("A request to an endpoint /execute was received.");
+				logger.debug("A request to an endpoint /shell/execute was received.");
 				
 				return ResponseEntity.ok(
 						ExecutionResultConverter.toDTO(
