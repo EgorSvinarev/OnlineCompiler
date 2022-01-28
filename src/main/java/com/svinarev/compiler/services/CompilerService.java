@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 import com.svinarev.compiler.models.RawCode;
 import com.svinarev.compiler.controllers.CompileController;
 import com.svinarev.compiler.models.ExecutionResult;
+import com.svinarev.compiler.models.DemonExecutionResult;
 import com.svinarev.compiler.entities.Exercise;
 import com.svinarev.compiler.entities.ExerciseUserPair;
 import com.svinarev.compiler.repositories.ExerciseRepository;
@@ -95,7 +96,7 @@ public class CompilerService {
 		
 		fileHandler.delete(path);
 		
-		logger.debug("Execution result for the file {}: {}.", path, result.toString());
+		logger.info("Execution result for the file {}: {}.", path, result.toString());
 		
 		if (result.isLimited()) {
 			Sentry.captureMessage(result.toString());
@@ -110,7 +111,7 @@ public class CompilerService {
 		/* Addition of the limits for the execution */
 		RawCode limitedCode = codeFormatter.addLimits(code);
 		
-		logger.info(limitedCode.getCode());
+		logger.debug("Limited code: {}", limitedCode.getCode());
 		
 		/* Compilation of code */
 		ExecutionResult execResult = compile(limitedCode);
@@ -124,8 +125,8 @@ public class CompilerService {
 			resultLength -= 1;
 		}
 		
-		logger.info("InitLength: {}", initLength);
-		logger.info("ResultLength: {}", resultLength);
+		logger.debug("InitLength: {}", initLength);
+		logger.debug("ResultLength: {}", resultLength);
 		
 		execResult.setError(proccesedTraceback);
 		logger.info("Processed traceback: {}", proccesedTraceback);
@@ -157,7 +158,7 @@ public class CompilerService {
 		exerciseCode = codeFormatter.addPreExerciseCode(code, exercise);
 		exerciseCode = codeFormatter.addLimits(exerciseCode);
 		
-		logger.info(exerciseCode.getCode());
+		logger.debug("Code: {}", exerciseCode.getCode());
 		
 		/* Compiling code*/
 		ExecutionResult result = compile(exerciseCode);
@@ -537,15 +538,15 @@ public class CompilerService {
 		return execResult;
 	}
 	
-	/** Starts an IPython Shell and returns id of the connection file */
-	public ExecutionResult startKernel() {
+	/** Initializes the process of the IPython Shell kernel and returns its id*/
+	public DemonExecutionResult initializeKernelProcess() {
 		/* Generating a file path */
 		String path = KRNL_MANAGER_FILE;
 		
-		ExecutionResult result;
+		DemonExecutionResult result;
 		
 		try{
-			result = execHandler.execute("python3 " + path);
+			result = execHandler.executeDemon("jupyter kernel");
 		}
 		catch (Exception e) {
 			logger.debug(e.toString() + e.fillInStackTrace().getMessage().toString());
@@ -553,23 +554,68 @@ public class CompilerService {
 			
 			Sentry.captureException(e);
 			
-			result = ExecutionResult.builder()
+			result = DemonExecutionResult.demonExecResBuilder()
 						.output("")
 						.status("error")
 						.error(error)
+						.pid(-1L)
 				   .build();
 		}
 		
 		logger.info("Result of the kernel starting: {}", result);
 		
+		result.setOutput(DemonExecutionResult.parseJupyterOutput(result.getOutput()));
+		
 		return result;
+	}
+	
+	/** Starts the kernel process and executes the pre-exercise code in it */
+	public DemonExecutionResult startKernel(Long exerciseId) {
+		
+		/* Getting exercise by id */
+		Optional<Exercise> opt = exerciseRepository.findById(exerciseId);
+		
+		if (opt.isEmpty()) {
+			logger.debug("Exercise with id: {} wasn't found", exerciseId);
+			return DemonExecutionResult.demonExecResBuilder()
+						.status("error")
+						.error(String.format("Exercise with id: %s wasn't found", exerciseId))
+						.output("")
+				   .build();	
+		}
+
+		Exercise exercise = opt.get();
+		
+		RawCode exerciseCode = RawCode.builder()
+									.code(exercise.getPreExerciseCode())
+								.build();
+		
+		/* Initialize the process of the IPython shell kernel */
+		DemonExecutionResult kernelResult = initializeKernelProcess();
+		
+		/* Execute the pre-exercise code in the kernel */
+		ExecutionResult execResult = executeInKernel(exerciseCode, kernelResult.getOutput());
+		
+		if (execResult.getStatus().equals("error")) {
+			return DemonExecutionResult.demonExecResBuilder()
+						.status("error")
+						.error(execResult.getError())
+						.build();
+		}
+		
+		return kernelResult;
 	}
 	
 	/** Executes code inside the kernel selected by id */
 	public ExecutionResult executeInKernel(RawCode code, String kernelId) {
-		String command = String.format("jupyter console --simple-prompt --existing kernels/connection_files/kernel-%s.json", kernelId);
-	
+		String command = String.format("jupyter console --simple-prompt --existing kernel-%s.json", kernelId);
+		
+		/* Process the code*/
+		code.setCode(code.getCode().replaceAll("\n", "\r"));
+		code.setCode(code.getCode().replaceAll("\r{2,}", "\r"));
+		
 		logger.debug("Command: {}", command);
+		logger.debug("Code: {}", code);
 		
 		ExecutionResult result;
 		
