@@ -441,11 +441,13 @@ public class CompilerService {
 		String imgPath = IMG_DEST_DIR + File.separator + FileHandler.getStringID() + ".png";
 		logger.debug("The path to the image file {}.", imgPath);
 		
+		String oldSolution = exercise.getSolution();
+		String oldExpectation = exercise.getExpectation();
+		
 		/* Preparation of user code for the plotting a graph */
 		Map<String, Object> pair = codeFormatter.preparePlotGraph(code, exercise, imgPath);
 		code = (RawCode) pair.get("code");
 		exercise = (Exercise) pair.get("exercise");
-		
 		
 		/* The main test of the exercise */
 		RawCode exerciseCode;
@@ -528,6 +530,9 @@ public class CompilerService {
 					    					.createdAt(LocalDateTime.now())
 					    					.updatedAt(LocalDateTime.now())
 										.build();
+			
+			exercise.setSolution(oldSolution);
+			exercise.setExpectation(oldExpectation);
 			
 			if (!exerciseUserPairRepository.existsByUserIdAndExerciseId(userId, exerciseId)) {
 				exerciseUserPairRepository.save(exUsPair);
