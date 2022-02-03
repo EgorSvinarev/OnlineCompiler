@@ -4,7 +4,7 @@ import os
 import sys
 
 # Changing the current directory
-# os.chdir("/programs")
+# os.chdir("programs/dev")
 
 # Exception hook that handles MemoryError
 def my_except_hook(exctype, value, traceback):
@@ -35,6 +35,6 @@ def set_max_memorylimit(maxsize):
 	resource.setrlimit(resource.RLIMIT_AS, (maxsize, hard))  
 
 
-set_max_runtime(2)
+set_max_runtime(3)
 set_max_memorylimit(2 ** 30)
 sys.excepthook = my_except_hook
