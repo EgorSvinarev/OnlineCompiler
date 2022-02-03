@@ -55,7 +55,6 @@ public class CodeFormatter {
 						+ "from tcs_pythonwhat.test_exercise import setup_state\n"
 						+ String.format("setup_state(stu_code = \"\"\"%s\"\"\", sol_code = \"\"\"%s\"\"\")\n", stu_code.getCode(), sol_code.getCode())
 						+ String.format("%s", exercise.getExpectation() != null ? exercise.getExpectation(): "");
-		System.out.println(result);
 		
 		return RawCode.builder()
 					.code(result)
@@ -72,13 +71,13 @@ public class CodeFormatter {
 		
 		String functionCallCode = String.format("plt.savefig('%s')", filePath);
 		
-		userCode = userCode.replace("plt.show()", functionCallCode);
-		solution = solution.replace("plt.show()", functionCallCode);
-		expectation = expectation.replace("matplotlib.pyplot.show", "matplotlib.pyplot.savefig");
+		String processedUserCode = userCode.replace("plt.show()", functionCallCode);
+		String processedSolution = solution.replace("plt.show()", functionCallCode);
+		String processedExpectation = expectation.replace("matplotlib.pyplot.show", "matplotlib.pyplot.savefig");
 		
-		code.setCode(userCode);
-		exercise.setSolution(solution);
-		exercise.setExpectation(expectation);
+		code.setCode(processedUserCode);
+		exercise.setSolution(processedSolution);
+		exercise.setExpectation(processedExpectation);
 		
 		result.put("code", code);
 		result.put("exercise", exercise);
