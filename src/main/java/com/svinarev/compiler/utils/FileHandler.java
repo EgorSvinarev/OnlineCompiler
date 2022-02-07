@@ -1,6 +1,7 @@
 package com.svinarev.compiler.utils;
 
 import java.text.SimpleDateFormat;
+import java.util.Base64;
 import java.util.Date;
 
 import io.sentry.Sentry;
@@ -54,6 +55,23 @@ public class FileHandler {
         else {
         	logger.debug("File {} already exists.");
         }
+	}
+	
+	/** Gets a byte array that represents an image */
+	public String imageToBase64(String imageFile) throws IOException {
+		File f = new File(imageFile);
+		FileInputStream fis = new FileInputStream(f);
+		
+		byte[] byteArray = new byte[(int) f.length()];
+		fis.read(byteArray);
+		
+		/* Convert a byte array to the Base64 */
+		String base64Image = Base64.getEncoder().encodeToString(byteArray);
+		
+		f.delete();
+		fis.close();
+		
+		return base64Image;
 	}
 	
 	/** Deletes a file*/
