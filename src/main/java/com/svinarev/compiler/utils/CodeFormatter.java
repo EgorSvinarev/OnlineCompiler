@@ -32,7 +32,6 @@ public class CodeFormatter {
 	
 	/** Adding pre_exercise_code */
 	public RawCode addPreExerciseCode(RawCode code, Exercise exercise) {
-//		заменить ("%s\n") на exercise.getPreerewfwefwjkeflwekljfef + "\n" if != null
 		String result = String.format("%s", (exercise.getPreExerciseCode() != null || exercise.getPreExerciseCode().length() > 0)? exercise.getPreExerciseCode() + "\n" : "")
 						+ String.format("%s\n", code.getCode() != null ? code.getCode(): "");
 						
@@ -42,9 +41,10 @@ public class CodeFormatter {
 	}
 
 	/** Adding expectation code */
-	public RawCode addSCT(RawCode studentCode, RawCode preparedCode, Exercise exercise) {
-		RawCode stu_code = addPreExerciseCode(studentCode, exercise);
-		RawCode sol_code = addPreExerciseCode(RawCode.builder().code(exercise.getSolution()).build(), exercise);
+	public RawCode addSCT(RawCode code, RawCode preparedCode, Exercise exercise) {
+		
+		RawCode studentCode = addPreExerciseCode(code, exercise);
+		RawCode solutionCode = addPreExerciseCode(RawCode.builder().code(exercise.getSolution()).build(), exercise);
 		
 		
 		String result = String.format("%s\n", preparedCode.getCode() != null ? preparedCode.getCode(): "")
@@ -53,13 +53,95 @@ public class CodeFormatter {
 						+ "globals().update(ctxt)\n"
 						+ "\n"
 						+ "from tcs_pythonwhat.test_exercise import setup_state\n"
-						+ String.format("setup_state(stu_code = \"\"\"%s\"\"\", sol_code = \"\"\"%s\"\"\")\n", stu_code.getCode(), sol_code.getCode())
+						+ String.format("setup_state(stu_code = \"\"\"%s\"\"\", sol_code = \"\"\"%s\"\"\")\n", studentCode.getCode(), solutionCode.getCode())
 						+ String.format("%s", exercise.getExpectation() != null ? exercise.getExpectation(): "");
 		
 		return RawCode.builder()
 					.code(result)
 			   .build();
 	}
+	
+	/** Changing function calls of plotting a graph to save it to the file */
+	public RawCode addPlottingGraph(RawCode code, String filePath) {
+		
+		/* Template for replacing plt.show with plt.savefig */
+		String functionCallCode = String.format("plt.savefig('%s')", filePath);
+		
+		/* Replacing plt.show with plt.savefig */
+		String newCode = code.getCode().replace("plt.show()", functionCallCode)
+										.replace("matplotlib.pyplot.show", "matplotlib.pyplot.savefig");
+				
+		return RawCode.builder()
+					.code(newCode)
+				.build();
+	
+	}
+	
+	/** Formatting the code to check the exercise. 
+	 * Adding limits, pre_exercise_code and expectations */
+	public RawCode toExerciseChecking(RawCode code, Exercise exercise) {
+		RawCode exerciseCode;
+		
+		exerciseCode = addLimits();
+		exerciseCode = addPreExerciseCode(exerciseCode, exercise);
+		exerciseCode = addSCT(code, exerciseCode, exercise);
+		
+		return exerciseCode;
+		
+	}
+	
+	/** Formatting the code to check the exercise. 
+	 * Adding limits, pre_exercise_code and expectations */
+	public RawCode toExerciseCheckingWithPlot(RawCode code, Exercise exercise, String filePath) {
+		RawCode exerciseCode;
+		
+		exerciseCode = addLimits();
+		exerciseCode = addPreExerciseCode(exerciseCode, exercise);
+		exerciseCode = addSCT(code, exerciseCode, exercise);
+		exerciseCode = addPlottingGraph(code, filePath);
+		
+		return exerciseCode;
+		
+	}
+	
+	/** Formatting the code to execute with preexercise code. 
+	 * Adding limits, pre_exercise_code */
+	public RawCode toExecutionWithExercise(RawCode code, Exercise exercise) {
+		RawCode exerciseCode;
+		
+		exerciseCode = addPreExerciseCode(code, exercise);
+		exerciseCode = addLimits(exerciseCode);
+		
+		return exerciseCode;
+		
+	}
+	
+	/** Formatting the code to execute with preexercise code 
+	 * and plotting a graph. Adding limits, pre_exercise_code
+	 * and changing function calls of plotting the graph */
+	public RawCode toExecutionWithExerciseAndPlot(RawCode code, Exercise exercise, String filePath) {
+		RawCode exerciseCode;
+		
+		exerciseCode = addPreExerciseCode(code, exercise);
+		exerciseCode = addLimits(exerciseCode);
+		exerciseCode = addPlottingGraph(exerciseCode, filePath);
+		
+		return exerciseCode;
+		
+	}
+	
+	
+	/** Formatting the code to execute. Adding limits */
+	public RawCode toExecution(RawCode code) {
+		RawCode exerciseCode;
+		
+		exerciseCode = addLimits(code);
+		
+		return exerciseCode;
+		
+	}
+	
+	
 	
 	/** Processing expectation code for plotting a graph */
 	public Map<String, Object> preparePlotGraph(RawCode code, Exercise exercise, String filePath) {
@@ -89,7 +171,9 @@ public class CodeFormatter {
 	/** Counting the number of lines in the code */
 	public int countLines(String text) {
 		if (text == null) return 0;
-		return (int) text.chars().filter(ch -> (ch == '\n')).count() + 1;
+		String processedText = text.replace('\t', '\n');
+		
+		return (int) processedText.chars().filter(ch -> (ch == '\n')).count() + 1;
 	}
 	
 	/** Сounting the length of a sequence of characters of a number in a string */
@@ -106,14 +190,31 @@ public class CodeFormatter {
 		return length;
 	}
 	
-	/** Replacing the line number with an error in the traceback */
-	public String prepareTraceback(String traceback, int lengthDifference) {
-		int beginIndex = traceback.indexOf("line ") + 5;
+	public String prepareTraceback(String a, int b) {
+		return "";
+	}
+	
+	/** Processing the traceback. 
+	 * Replacing the line number with an error in it. */
+	public String processTraceback(String traceback, RawCode readyCode, RawCode rawCode, int offset) {
+		int initLength = countLines(rawCode.getCode());
+		int resultLength = countLines(readyCode.getCode());		
 		
+		System.out.println(initLength);
+		System.out.println(resultLength);
+		
+		if (initLength > 1) {
+			resultLength -= 1;
+		}
+		
+		int lengthDifference = resultLength- initLength;
+		
+		int beginIndex = traceback.indexOf("line ") + 5;
 		if (beginIndex == 4) return traceback;
 		
 		int endIndex = beginIndex + countNumberLength(traceback.substring(beginIndex));
-		int lineNumber = Integer.parseInt(traceback.substring(beginIndex, endIndex)) - lengthDifference;
+		
+		int lineNumber = Integer.parseInt(traceback.substring(beginIndex, endIndex)) - lengthDifference + offset;
 		
 		String processedTraceback = String.format("%s %d%s", traceback.substring(0, beginIndex - 1), lineNumber, traceback.substring(endIndex));
 		
