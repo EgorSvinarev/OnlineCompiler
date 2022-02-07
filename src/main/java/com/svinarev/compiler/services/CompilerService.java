@@ -69,6 +69,7 @@ public class CompilerService {
 	
 	/** Compiling of user code */
 	public ExecutionResult compile(RawCode code) {
+		
 		/* Generating a file path */
 		String path = PY_DEST_DIR + File.separator + FileHandler.getStringID() + ".py";
 		logger.debug("The path to the compiled file {}.", path);
@@ -109,7 +110,7 @@ public class CompilerService {
 	public ExecutionResult execute(RawCode code) {
 		
 		/* Addition of the limits for the execution */
-		RawCode limitedCode = codeFormatter.addLimits(code);
+		RawCode limitedCode = codeFormatter.toExecution(code);
 		
 		logger.debug("Limited code: {}", limitedCode.getCode());
 		
@@ -117,19 +118,10 @@ public class CompilerService {
 		ExecutionResult execResult = compile(limitedCode);
 		
 		/* Formatting the traceback */
-		int initLength = codeFormatter.countLines(code.getCode());
-		int resultLength = codeFormatter.countLines(limitedCode.getCode());
-		String proccesedTraceback = codeFormatter.prepareTraceback(execResult.getError(), resultLength - initLength);
+		String traceback = codeFormatter.processTraceback(execResult.getError(), limitedCode, code, 0);
+		logger.debug("Traceback: {}", traceback);
 		
-		if (initLength > 1) {
-			resultLength -= 1;
-		}
-		
-		logger.debug("InitLength: {}", initLength);
-		logger.debug("ResultLength: {}", resultLength);
-		
-		execResult.setError(proccesedTraceback);
-		logger.info("Processed traceback: {}", proccesedTraceback);
+		execResult.setError(traceback);
 		
 		return execResult;
 		
@@ -137,7 +129,7 @@ public class CompilerService {
 	
 	/** Execution of user code with the addition of limits and pre_exercise_code */
 	public ExecutionResult executeWithExercise(RawCode code, Long exerciseId) {
-
+		
 		/* Getting exercise by id */
 		Optional<Exercise> opt = exerciseRepository.findById(exerciseId);
 		
@@ -152,40 +144,26 @@ public class CompilerService {
 
 		Exercise exercise = opt.get();
 		
-		RawCode exerciseCode;
-		
-		/* Formatting the code to execute. Addding limits and pre_exercise_code */
-		exerciseCode = codeFormatter.addPreExerciseCode(code, exercise);
-		exerciseCode = codeFormatter.addLimits(exerciseCode);
-		
-		logger.debug("Code: {}", exerciseCode.getCode());
+		/* Formatting the code for execution */
+		RawCode exerciseCode = codeFormatter.toExecutionWithExercise(code, exercise);
+		logger.debug("Code: {}", exerciseCode);
 		
 		/* Compiling code*/
-		ExecutionResult result = compile(exerciseCode);
+		ExecutionResult execResult = compile(exerciseCode);
 		
-		/* Formatting the traceback */
-		int initLength = codeFormatter.countLines(code.getCode());
-		int resultLength = codeFormatter.countLines(exerciseCode.getCode());
+		/* Processing the traceback */
+		String traceback = codeFormatter.processTraceback(execResult.getError(), exerciseCode, code, 0);
+		logger.debug("Traceback: {}", traceback);
 		
-		if (initLength > 1) {
-			resultLength -= 1;
-		}
+		execResult.setError(traceback);
 		
-		logger.info("InitLength: {}", initLength);
-		logger.info("ResultLength: {}", resultLength);
-		
-		String proccesedTraceback = codeFormatter.prepareTraceback(result.getError(), resultLength - initLength);
-		
-		result.setError(proccesedTraceback);
-		logger.info("Processed traceback: {}", proccesedTraceback);
-		
-		return result;
-		
+		return execResult;
 	}
 	
 	/** Execution of user code with the addition of limits and pre_exercise_code and 
 	 * formatting code for plotting a graph */ 
 	public ExecutionResult executeWithExerciseAndPlot(RawCode code, Long exerciseId) {
+		
 		/* Getting exercise by id */
 		Optional<Exercise> opt = exerciseRepository.findById(exerciseId);
 		
@@ -204,71 +182,38 @@ public class CompilerService {
 		String imgPath = IMG_DEST_DIR + File.separator + FileHandler.getStringID() + ".png";
 		logger.debug("The path to the image file {}.", imgPath);
 		
-		/* Preparation of user code for the plotting a graph */
-		Map<String, Object> pair = codeFormatter.preparePlotGraph(code, exercise, imgPath);
-		code = (RawCode) pair.get("code");
-		exercise = (Exercise) pair.get("exercise");
-		
-		RawCode exerciseCode;
-		
-		/* Formatting the code to execute. Addding limits and pre_exercise_code */
-		exerciseCode = codeFormatter.addPreExerciseCode(code, exercise);
-		exerciseCode = codeFormatter.addLimits(exerciseCode);
-		
-		logger.info(exerciseCode.getCode());
+		/* Formatting the code for execution */
+		RawCode exerciseCode = codeFormatter.toExecutionWithExerciseAndPlot(code, exercise, imgPath);
+		logger.debug("Code: {}", exerciseCode);
 		
 		/* Compiling code*/
 		ExecutionResult execResult = compile(exerciseCode);
 		
-		/* Formatting the traceback */
-		int initLength = codeFormatter.countLines(code.getCode());
-		int resultLength = codeFormatter.countLines(exerciseCode.getCode());
+		/* Processing the traceback */
+		String traceback = codeFormatter.processTraceback(execResult.getError(), exerciseCode, code, 0);
+		logger.debug("Traceback: {}", traceback);
 		
-		if (initLength > 1) {
-			resultLength -= 1;
+		execResult.setError(traceback);
+		
+		/* Converting an image to base64 */
+		if (execResult.getStatus().equals("success")) {
+			try {
+				String payload = fileHandler.imageToBase64(imgPath);
+				execResult.setBytePayload(String.format("data:image/png;base64,%s", payload));
+			}
+			catch (Exception e) {
+				logger.debug(e.toString() + e.fillInStackTrace().getMessage().toString());
+				Sentry.captureException(e);
+			}
 		}
 		
-		logger.info("InitLength: {}", initLength);
-		logger.info("ResultLength: {}", resultLength);
+		return execResult; 
 		
-		String proccesedTraceback = codeFormatter.prepareTraceback(execResult.getError(), resultLength - initLength - 1);
-		
-		execResult.setError(proccesedTraceback);
-		logger.info("Processed traceback: {}", proccesedTraceback);
-		
-		if (execResult.getStatus().equals("success")) {
-		
-			try {
-				/* Getting a byte array that represents an image */
-				File f = new File(imgPath);
-				FileInputStream fis = new FileInputStream(f);
-				
-				byte[] byteArray = new byte[(int) f.length()];
-				fis.read(byteArray);
-				
-				/* Convert a byte array to the Base64 */
-				String base64Image = Base64.getEncoder().encodeToString(byteArray);
-				
-				execResult.setBytePayload(String.format("data:image/png;base64,%s"	, base64Image));
-				
-				logger.debug("A graph was plotted. ");
-			
-				f.delete();
-				fis.close();
-			
-			}
-			catch (IOException exc) {
-			
-				logger.debug(exc.toString() + exc.fillInStackTrace().getMessage().toString());
-			}
-			
-		}	
-		
-		return execResult;
 	}
 	
 	/** Checking user code for compliance with pythonwhat-library expectations */
 	public ExecutionResult checkExercise(RawCode code, Long exerciseId, Long userId) {
+		
 		/* Getting exercise by id */
 		Optional<Exercise> opt = exerciseRepository.findById(exerciseId);
 		
@@ -304,15 +249,9 @@ public class CompilerService {
 						.output("")
 				   .build();
 		}
-				
-		/* The main test of the exercise */
-		RawCode exerciseCode;
 		
-		/* Formatting the code to execute. Addding limits, pre_exercise_code and expectations */
-		exerciseCode = codeFormatter.addLimits();
-		exerciseCode = codeFormatter.addPreExerciseCode(exerciseCode, exercise);
-		exerciseCode = codeFormatter.addSCT(code, exerciseCode, exercise);
-		
+		/* Formatting the code for checking */
+		RawCode exerciseCode = codeFormatter.toExerciseChecking(code, exercise);
 		logger.info("ExerciseCode: {}", exerciseCode.getCode());
 		
 		/* Compiling code*/		
@@ -321,34 +260,20 @@ public class CompilerService {
 		/* Formatting the feedback */
 		execResult.setError(ExecutionResult.parseError(execResult.getError()));
 		
-		int initLength = codeFormatter.countLines(code.getCode());
-		int resultLength = codeFormatter.countLines(exercise.getPreExerciseCode()) + initLength;
+		String traceback = codeFormatter.processTraceback(execResult.getError(), codeFormatter.toExecutionWithExercise(code, exercise), code, 0);
+		logger.debug("Traceback: {}", traceback);
 		
-		if (initLength == 1) {
-			resultLength -= 1;
-		}
-		
-		logger.info("InitLength: {}", initLength);
-		logger.info("ResultLength: {}", resultLength);
-		
-		String proccesedTraceback = codeFormatter.prepareTraceback(execResult.getError(), resultLength - initLength);
-		
-		logger.info("Processed traceback: {}", proccesedTraceback);
-		execResult.setError(proccesedTraceback);
-		
+		execResult.setError(traceback);
+
 		
 		if (execResult.getStatus().equals("success")) {
+			
 			/* The code is executed with pre_exercise_code to check for syntax errors */
-			RawCode preCode;
+			RawCode checkCode = codeFormatter.toExecutionWithExercise(exerciseCode, exercise);
+			logger.info("Precode: {}", checkCode.getCode());
 			
-			/* Formatting the code to execute. Addding limits and pre_exercise_code */
-			preCode = codeFormatter.addPreExerciseCode(code, exercise);
-			preCode = codeFormatter.addLimits(preCode);
-			
-			logger.info("Precode: {}", preCode.getCode());
-			
-			/* Compiling precode*/
-			ExecutionResult preResult = compile(preCode);
+			/* Compiling a checking code*/
+			ExecutionResult preResult = compile(checkCode);
 			
 			if (preResult.getStatus().equals("error")) {
 				preResult.setError("Ваш код содержит ошибку. Исправьте её и попробуйте снова!");
@@ -366,13 +291,13 @@ public class CompilerService {
 			
 			if (!exerciseUserPairRepository.existsByUserIdAndExerciseId(userId, exerciseId)) {
 				exerciseUserPairRepository.save(exUsPair);
-			}			
+			}
 		}
 		
 		return execResult;
 		
 	}
-	
+		
 	private void createExercise() {
 		Exercise e = Exercise.builder()
 						.id(6L)
@@ -501,25 +426,14 @@ public class CompilerService {
 			
 			try {
 				/* Getting a byte array that represents an image */
-				File f = new File(imgPath);
-				FileInputStream fis = new FileInputStream(f);
+				String base64Image = fileHandler.imageToBase64(imgPath);
 				
-				byte[] byteArray = new byte[(int) f.length()];
-				fis.read(byteArray);
-				
-				/* Convert a byte array to the Base64 */
-				String base64Image = Base64.getEncoder().encodeToString(byteArray);
-				
-				execResult.setBytePayload(String.format("data:image/png;base64,%s"	, base64Image));
+				execResult.setBytePayload(String.format("data:image/png;base64,%s", base64Image));
 				
 				logger.debug("A graph was plotted. ");
 			
-				f.delete();
-				fis.close();
-			
 			}
 			catch (IOException exc) {
-			
 				logger.debug(exc.toString() + exc.fillInStackTrace().getMessage().toString());
 			}
 			
@@ -545,9 +459,6 @@ public class CompilerService {
 	
 	/** Initializes the process of the IPython Shell kernel and returns its id*/
 	public DemonExecutionResult initializeKernelProcess() {
-		/* Generating a file path */
-		String path = KRNL_MANAGER_FILE;
-		
 		DemonExecutionResult result;
 		
 		try{
