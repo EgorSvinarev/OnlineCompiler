@@ -29,8 +29,8 @@ RUN apt-get update && apt-get install -y python3-pip
 ENV CATALINA_HOME /opt/tomcat9  
 ENV PATH $PATH:$CATALINA_HOME/bin  
  
-# Expose ports.  
-EXPOSE 8080  
+# Expose ports.   
+EXPOSE 8080
  
 ARG JAR_FILE=target/online-compiler-0.0.1-SNAPSHOT.jar
 ARG COMMON_FOLDER=common
