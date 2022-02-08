@@ -11,6 +11,8 @@ import com.svinarev.compiler.entities.Exercise;
 @Component
 public class CodeFormatter {
 
+	
+	
 	/** Adding import of the limitation code to the empty code*/
 	public RawCode addLimits() {
 		String limitedCode = "import limits\n";
@@ -24,6 +26,15 @@ public class CodeFormatter {
 	public RawCode addLimits(RawCode code) {
 		String limitedCode = "import limits\n"
 								+ code.getCode();
+		
+		return RawCode.builder()
+					.code(limitedCode)
+			   .build();
+	}
+	
+	/** Adding import of the limitation code */
+	public RawCode limitsForKernel(String workingDir) {
+		String limitedCode = String.format("import os\nos.chdir('%s')\n", workingDir);
 		
 		return RawCode.builder()
 					.code(limitedCode)
@@ -140,8 +151,6 @@ public class CodeFormatter {
 		return exerciseCode;
 		
 	}
-	
-	
 	
 	/** Processing expectation code for plotting a graph */
 	public Map<String, Object> preparePlotGraph(RawCode code, Exercise exercise, String filePath) {
