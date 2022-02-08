@@ -269,11 +269,11 @@ public class CompilerService {
 		if (execResult.getStatus().equals("success")) {
 			
 			/* The code is executed with pre_exercise_code to check for syntax errors */
-			RawCode checkCode = codeFormatter.toExecutionWithExercise(exerciseCode, exercise);
-			logger.info("Precode: {}", checkCode.getCode());
+			RawCode preCode = codeFormatter.toExecutionWithExercise(exerciseCode, exercise);
+			logger.info("Precode: {}", preCode.getCode());
 			
 			/* Compiling a checking code*/
-			ExecutionResult preResult = compile(checkCode);
+			ExecutionResult preResult = compile(preCode);
 			
 			if (preResult.getStatus().equals("error")) {
 				preResult.setError("Ваш код содержит ошибку. Исправьте её и попробуйте снова!");
@@ -327,6 +327,7 @@ public class CompilerService {
 	/** Checking user code for compliance with pythonwhat-library expectations and formatting
 	 * code for plotting a graph */
 	public ExecutionResult plotGraph(RawCode code, Long exerciseId, Long userId) {
+		
 		/* Getting exercise by id */
 		Optional<Exercise> opt = exerciseRepository.findById(exerciseId);
 		
@@ -366,54 +367,24 @@ public class CompilerService {
 		String imgPath = IMG_DEST_DIR + File.separator + FileHandler.getStringID() + ".png";
 		logger.debug("The path to the image file {}.", imgPath);
 		
-		String oldSolution = exercise.getSolution();
-		String oldExpectation = exercise.getExpectation();
+		/* Formatting the code for execution */
+		RawCode exerciseCode = codeFormatter.toExerciseCheckingWithPlot(code, exercise, imgPath);
+		logger.debug("Code: {}", exerciseCode);
 		
-		/* Preparation of user code for the plotting a graph */
-		Map<String, Object> pair = codeFormatter.preparePlotGraph(code, exercise, imgPath);
-		code = (RawCode) pair.get("code");
-		exercise = (Exercise) pair.get("exercise");
-		
-		/* The main test of the exercise */
-		RawCode exerciseCode;
-		
-		/* Formatting the code to execute. Addding limits, pre_exercise_code and expectations */
-		exerciseCode = codeFormatter.addLimits();
-		exerciseCode = codeFormatter.addPreExerciseCode(exerciseCode, exercise);
-		exerciseCode = codeFormatter.addSCT(code, exerciseCode, exercise);
-		
-		logger.info("ExerciseCode: {}", exerciseCode.getCode());
-		
-		/* Compiling code*/		
+		/* Compiling code*/
 		ExecutionResult execResult = compile(exerciseCode);
 		
 		/* Formatting the feedback */
 		execResult.setError(ExecutionResult.parseError(execResult.getError()));
 		
-		int initLength = codeFormatter.countLines(code.getCode());
-		int resultLength = codeFormatter.countLines(exercise.getPreExerciseCode()) + initLength;
+		String traceback = codeFormatter.processTraceback(execResult.getError(), codeFormatter.toExecutionWithExercise(code, exercise), code, 0);
+		logger.debug("Traceback: {}", traceback);
 		
-		if (initLength == 1) {
-			resultLength -= 1;
-		}
-		
-		logger.info("InitLength: {}", initLength);
-		logger.info("ResultLength: {}", resultLength);
-		
-		String proccesedTraceback = codeFormatter.prepareTraceback(execResult.getError(), resultLength - initLength);
-		
-		logger.info("Processed traceback: {}", proccesedTraceback);
-		execResult.setError(proccesedTraceback);
+		execResult.setError(traceback);
 		
 		if (execResult.getStatus().equals("success")) {
-		
 			/* The code is executed with pre_exercise_code to check for syntax errors */
-			RawCode preCode;
-			
-			/* Formatting the code to execute. Addding limits and pre_exercise_code */
-			preCode = codeFormatter.addPreExerciseCode(code, exercise);
-			preCode = codeFormatter.addLimits(preCode);
-			
+			RawCode preCode = codeFormatter.toExecutionWithExerciseAndPlot(code, exercise, imgPath);
 			logger.info("Precode: {}", preCode.getCode());
 			
 			/* Compiling code*/
@@ -427,14 +398,13 @@ public class CompilerService {
 			try {
 				/* Getting a byte array that represents an image */
 				String base64Image = fileHandler.imageToBase64(imgPath);
-				
 				execResult.setBytePayload(String.format("data:image/png;base64,%s", base64Image));
-				
 				logger.debug("A graph was plotted. ");
 			
 			}
-			catch (IOException exc) {
-				logger.debug(exc.toString() + exc.fillInStackTrace().getMessage().toString());
+			catch (IOException e) {
+				Sentry.captureException(e);
+				logger.debug(e.toString() + e.fillInStackTrace().getMessage().toString());
 			}
 			
 			/* Entering a data into the database that the exercise was completed */
@@ -445,9 +415,6 @@ public class CompilerService {
 					    					.updatedAt(LocalDateTime.now())
 										.build();
 			
-			exercise.setSolution(oldSolution);
-			exercise.setExpectation(oldExpectation);
-			
 			if (!exerciseUserPairRepository.existsByUserIdAndExerciseId(userId, exerciseId)) {
 				exerciseUserPairRepository.save(exUsPair);
 			}
@@ -455,6 +422,7 @@ public class CompilerService {
 		}
 		
 		return execResult;
+		
 	}
 	
 	/** Initializes the process of the IPython Shell kernel and returns its id*/
@@ -502,15 +470,29 @@ public class CompilerService {
 
 		Exercise exercise = opt.get();
 		
+		/* Initialize the process of the IPython shell kernel */
+		DemonExecutionResult kernelResult = initializeKernelProcess();
+		
+		/* Prepare the pre-exercise code for kernel */
 		RawCode exerciseCode = RawCode.builder()
 									.code(exercise.getPreExerciseCode())
 								.build();
 		
-		/* Initialize the process of the IPython shell kernel */
-		DemonExecutionResult kernelResult = initializeKernelProcess();
-		
 		/* Execute the pre-exercise code in the kernel */
 		ExecutionResult execResult = executeInKernel(exerciseCode, kernelResult.getOutput());
+		
+		if (execResult.getStatus().equals("error")) {
+			return DemonExecutionResult.demonExecResBuilder()
+						.status("error")
+						.error(execResult.getError())
+						.build();
+		}
+		
+		/* Prepare the limitation code for kernel */
+		RawCode limitCode = codeFormatter.limitsForKernel(PY_DEST_DIR);
+		
+		/* Execute the limitation code in the kernel */
+		execResult = executeInKernel(limitCode, kernelResult.getOutput());
 		
 		if (execResult.getStatus().equals("error")) {
 			return DemonExecutionResult.demonExecResBuilder()
