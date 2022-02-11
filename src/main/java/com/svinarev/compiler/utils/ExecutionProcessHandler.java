@@ -7,7 +7,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.io.SequenceInputStream;
+
+import java.nio.charset.StandardCharsets;
+import java.nio.ByteBuffer;
 
 import java.util.concurrent.TimeUnit;
 
@@ -50,6 +52,7 @@ public class ExecutionProcessHandler {
 					.output(output)
 					.error(error)
 			   .build();
+	
 	}
 	
 	/** Executes the process with writing data to the STDIN*/
@@ -79,10 +82,12 @@ public class ExecutionProcessHandler {
 					.output(output)
 					.error(error)
 			   .build();		
+	
 	}
 	
 	/** Executes the demon */
 	public DemonExecutionResult executeDemon(String command) throws Exception {
+	
 		Process process = startProcess(command);
 		
 		logger.debug("Execution process with a pid {} was successfully started.", process.pid());
@@ -104,23 +109,21 @@ public class ExecutionProcessHandler {
 				.error(error)
 				.pid(pid)
 		   .build();
+	
 	}
 	
 	/** Starts the execution process in the OS */
 	private Process startProcess(String command) throws Exception {
+		
 		Process process = Runtime.getRuntime().exec(command);
 		
 		return process;
-	}
-	
-	public void killProcess(long pid) {
-		
+
 	}
 	
 	/** Reads the output stream from the demon */
 	private String readDemonStream(InputStream stdOut, int linesNumber) throws Exception {	
-//		logger.debug("{}", stdOut.available());
-
+		
 		BufferedReader reader = new BufferedReader(new InputStreamReader(stdOut, "utf-8"));
 		
 		StringBuilder stringBuilder = new StringBuilder();
@@ -150,10 +153,12 @@ public class ExecutionProcessHandler {
 		output = (output == null || output.length() == 0) ? "" : (output.substring(0, output.length() - 1));
 				
 		return output;
+	
 	}	
 	
 	/** Reads the output stream from the process */
 	private String readStream(InputStream stdOut) throws Exception {	
+		
 		BufferedReader reader = new BufferedReader(new InputStreamReader(stdOut, "utf-8"));
 		
 		StringBuilder stringBuilder = new StringBuilder();
@@ -178,17 +183,30 @@ public class ExecutionProcessHandler {
 		
 		String output = response.toString();
 		output = (output == null || output.length() == 0) ? "" : (output.substring(0, output.length() - 1));
-				
+		
 		return output;
 
 	}
 	
+	/** Writes data to the stream */
 	public void writeStream(OutputStream stdIn, String data) throws Exception {
+		
 		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(stdIn));
 		
 		writer.write(data);
 		writer.flush();
 		writer.close();
+	
+	}
+	
+	/** Converts a string to utf-8 */
+	public String toUtf(String data) {
+		
+		byte[] bytes = data.getBytes();
+		String encodedData = new String(bytes, StandardCharsets.UTF_8);
+		
+		return encodedData;
+		
 	}
 	
 }
