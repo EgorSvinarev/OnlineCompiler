@@ -544,4 +544,61 @@ public class CompilerService {
 		
 	}
 	
+	/** Executes code inside the kernel selected by id */
+	public ExecutionResult executeInKernelWithPlot(RawCode code, String kernelId) {
+		String command = String.format("jupyter console --simple-prompt --existing kernel-%s.json", kernelId);
+		logger.debug("Command: {}", command);
+
+		/* Generating an image path	*/	
+		String imgPath = IMG_DEST_DIR + File.separator + FileHandler.getStringID() + ".png";
+		logger.debug("The path to the image file {}.", imgPath);
+		
+		/* Formatting the code for execution */
+		RawCode processedCode = codeFormatter.addPlottingGraph(code, imgPath);
+		logger.debug("Code: {}", processedCode);
+		
+		/* Process the code*/
+		code.setCode(code.getCode().replaceAll("\n", "\r"));
+		code.setCode(code.getCode().replaceAll("\r{2,}", "\r"));
+		
+		ExecutionResult execResult;
+		
+		try{
+			execResult = execHandler.execute(command, code.getCode());	
+		}
+		catch (Exception e) {
+			logger.debug(e.toString() + e.fillInStackTrace().getMessage().toString());
+			String error = e.getMessage() + ": " + e.fillInStackTrace().getMessage().toString();
+			
+			Sentry.captureException(e);
+			
+			execResult = ExecutionResult.builder()
+						.output("")
+						.status("error")
+						.error(error)
+				   .build();
+
+		}
+		
+		logger.debug("Output: {}", execResult.getOutput());
+		execResult.setOutput(execResult.parseShellFeedback(execResult.getOutput()));
+		logger.info("Result of the execution inside the kernel: {}", execResult);
+		
+		/* Converting an image to base64 */
+		if (execResult.getStatus().equals("success")) {
+			try {
+				String payload = fileHandler.imageToBase64(imgPath);
+				execResult.setBytePayload(String.format("data:image/png;base64,%s", payload));
+			}
+			catch (Exception e) {
+				logger.debug(e.toString() + e.fillInStackTrace().getMessage().toString());
+				Sentry.captureException(e);
+			}
+		}
+		
+		
+		return execResult;
+		
+	}
+	
 }
