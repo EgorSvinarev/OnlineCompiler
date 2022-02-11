@@ -200,20 +200,32 @@ public class CompileController {
 					@Parameter(description = "Пользовательский код для исполнения.", 
 			        	required = true, 
 			        	schema = @Schema(implementation = RawCodeDTO.class))
-					
 					@Valid @RequestBody RawCodeDTO code,
 					
 					@Parameter(description = "Id ядра, в котором должен исполняться код.",
 						required = true)
-					@PathVariable String kernelId) {
+					@PathVariable String kernelId,
+					
+					@RequestParam(name = "isGraphRequired", required = false, defaultValue = "false")
+					boolean isGraphRequired) {
 				
 				logger.debug("A request to an endpoint /shell/execute was received.");
 				
-				return ResponseEntity.ok(
-						ExecutionResultConverter.toDTO(
-								service.executeInKernel(RawCodeConverter.fromDTO(code), kernelId)
-						)
-				);
+				if (isGraphRequired) {
+					return ResponseEntity.ok(
+							ExecutionResultConverter.toDTO(
+									service.executeInKernelWithPlot(RawCodeConverter.fromDTO(code), kernelId)
+							)
+					);
+				}
+				else {
+					return ResponseEntity.ok(
+							ExecutionResultConverter.toDTO(
+									service.executeInKernel(RawCodeConverter.fromDTO(code), kernelId)
+							)
+					);
+				}
+				
 		
 	}
 	
