@@ -35,14 +35,16 @@ EXPOSE 8080
 ARG JAR_FILE=target/online-compiler-0.0.1-SNAPSHOT.jar
 ARG COMMON_FOLDER=common
 ARG PROGRAMS_FOLDER=programs/prod
-ARG PYTHON_RQRMNT_FILE=requirments.txt
+ARG PYTHON_RQRMNT_FILE=requirements.txt
+ARG DATASET_LOADER_SCRPT=dataset_loader.py
 
 COPY ${JAR_FILE} app.jar
 ADD ${COMMON_FOLDER} common
 ADD ${PROGRAMS_FOLDER} programs
-COPY ${PYTHON_RQRMNT_FILE} requirments.txt
+COPY ${PYTHON_RQRMNT_FILE} requirements.txt
+COPY ${DATASET_LOADER_SCRPT} dataset_loader.py
 
 # Install packages
-# RUN pip3 install -r requirments.txt
+# RUN pip3 install -r requirements.txt
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
