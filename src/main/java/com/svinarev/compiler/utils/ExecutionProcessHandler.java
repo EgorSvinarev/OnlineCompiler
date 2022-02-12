@@ -12,6 +12,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.ByteBuffer;
 
 import java.util.concurrent.TimeUnit;
+import java.util.HashMap;
+import java.util.Map;
+import java.time.LocalDateTime;
+
+import lombok.Getter;
+import lombok.Setter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +32,14 @@ import org.springframework.stereotype.Component;
 public class ExecutionProcessHandler {
 	
 	Logger logger = LoggerFactory.getLogger(CompileController.class);
+	
+	@Getter
+	@Setter
+	Map<Long, LocalDateTime> livingDemons = new HashMap<Long, LocalDateTime>();
+	
+	@Getter
+	@Setter
+	Map<Long, Process> mappingTable = new HashMap<Long, Process>();
 	
 	/** Executes the process */
 	public ExecutionResult execute(String command) throws Exception {
@@ -101,13 +115,18 @@ public class ExecutionProcessHandler {
 		logger.debug("Stderr was read");
 		String status = (error.length() == 0) ? "success" : "error";
 		
-		long pid = process.pid();
+		
+		/* Caching the process */
+		LocalDateTime currentTime = LocalDateTime.now();
+		Long pid = process.pid();
+		
+		livingDemons.put(pid, currentTime);
+		mappingTable.put(pid, process);
 		
 		return DemonExecutionResult.demonExecResBuilder()
 				.status(status)
 				.output(output)
 				.error(error)
-				.pid(pid)
 		   .build();
 	
 	}
