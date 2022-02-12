@@ -2,6 +2,7 @@ package com.svinarev.compiler.services;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import io.sentry.Sentry;
 
@@ -10,8 +11,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.time.LocalDateTime;
+import java.util.concurrent.TimeUnit;
 
 import com.svinarev.compiler.models.RawCode;
 import com.svinarev.compiler.controllers.CompileController;
@@ -22,6 +26,7 @@ import com.svinarev.compiler.entities.ExerciseUserPair;
 import com.svinarev.compiler.repositories.ExerciseRepository;
 import com.svinarev.compiler.repositories.ExerciseUserPairRepository;
 import com.svinarev.compiler.repositories.UserRepository;
+import com.svinarev.compiler.utils.TimeUtil;
 
 import com.svinarev.compiler.utils.ExecutionProcessHandler;
 import com.svinarev.compiler.utils.FileHandler;
@@ -32,7 +37,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.time.LocalDateTime;
 
 @Service
 @PropertySource(value = "classpath:application.properties")
@@ -598,6 +602,52 @@ public class CompilerService {
 		
 		
 		return execResult;
+		
+	}
+	
+	/** Removes all ipython shell cores */
+	@Scheduled(fixedRate = 5, timeUnit = TimeUnit.MINUTES)
+	public void cleanOldCores() {
+		
+		logger.debug("Cleaning of old kernels begins.");
+		
+		Map<Long, LocalDateTime> timeTable = execHandler.getLivingDemons();
+		Map<Long, Process> mapping = execHandler.getMappingTable();
+		
+		List<Long> keysToDelete = new ArrayList<Long>();
+		
+		LocalDateTime currentTime = LocalDateTime.now();
+		
+		for (Long pid: timeTable.keySet()) {
+		
+			logger.debug("Pid: {}", pid);
+			
+			LocalDateTime oldTime = timeTable.get(pid);
+			Long minuteDifference = TimeUtil.minuteDifference(oldTime, currentTime);
+			
+			logger.debug("Minute difference: {}", minuteDifference);
+			
+			if (minuteDifference >= 5) {
+				
+				Process process = mapping.get(pid);
+				process.destroy();
+				
+				logger.debug("Process with pid: {} created at {} was destroyed.", pid, oldTime);
+				
+				keysToDelete.add(pid);
+				
+			}
+		}
+		
+		/* Deleting old cores */
+		for (Long pid: keysToDelete) {
+			
+			timeTable.remove(pid);
+			mapping.remove(pid);
+		
+		}
+		
+		logger.debug("Cleaning is finished.");
 		
 	}
 	
