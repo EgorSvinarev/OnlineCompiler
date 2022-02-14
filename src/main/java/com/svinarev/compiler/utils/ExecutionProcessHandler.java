@@ -187,7 +187,6 @@ public class ExecutionProcessHandler {
 		String msg;
 		
 		while ((msg = reader.readLine()) != null) {
-			logger.debug(msg);
 			stringBuilder.append(msg).append("\n");
 		}
 		
