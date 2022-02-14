@@ -206,6 +206,11 @@ public class CompileController {
 						required = true)
 					@PathVariable String kernelId,
 					
+					@Parameter(description = "Id упражнения",
+					   required = true)
+					@RequestParam(name = "exerciseId", required = true)
+					Long exerciseId,
+					
 					@RequestParam(name = "isGraphRequired", required = false, defaultValue = "false")
 					boolean isGraphRequired) {
 				
@@ -214,7 +219,7 @@ public class CompileController {
 				if (isGraphRequired) {
 					return ResponseEntity.ok(
 							ExecutionResultConverter.toDTO(
-									service.executeInKernelWithPlot(RawCodeConverter.fromDTO(code), kernelId)
+									service.executeInKernelWithPlot(RawCodeConverter.fromDTO(code), kernelId, exerciseId)
 							)
 					);
 				}
