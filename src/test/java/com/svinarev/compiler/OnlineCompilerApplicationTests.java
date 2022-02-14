@@ -1,10 +1,8 @@
 package com.svinarev.compiler;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
-class OnlineCompilerApplicationTests {
+class OnlineCompilerApplicationTests extends AbstractTest {
 
 	@Test
 	void contextLoads() {
