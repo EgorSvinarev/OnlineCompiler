@@ -109,7 +109,7 @@ public class CodeFormatter {
 		exerciseCode = addLimits();
 		exerciseCode = addPreExerciseCode(exerciseCode, exercise);
 		exerciseCode = addSCT(code, exerciseCode, exercise);
-		exerciseCode = addPlottingGraph(code, filePath);
+		exerciseCode = addPlottingGraph(exerciseCode, filePath);
 		
 		return exerciseCode;
 		
@@ -141,6 +141,21 @@ public class CodeFormatter {
 		
 	}
 	
+	
+	public RawCode toExecuteIntKernelWithGraph(RawCode code) {
+		
+		String curCode = code.getCode();
+
+		curCode = curCode.replaceAll("plt.", "# plt.");
+		
+		curCode = curCode.replaceAll("\n", "\r");
+		curCode = curCode.replaceAll("\r{2,}", "\r");
+		
+		
+		return RawCode.builder()
+					.code(curCode)
+				.build();
+	}
 	
 	/** Formatting the code to execute. Adding limits */
 	public RawCode toExecution(RawCode code) {
